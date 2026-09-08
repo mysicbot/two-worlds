@@ -1,8 +1,8 @@
 /**
  * Dev/preview (Vite) half of the platform PWA chrome: serves the ?install=1
  * tutorial and the per-app manifest, and injects missing PWA head tags into
- * app documents. The deployed-app half lives in server/middleware/grok-pwa.ts;
- * both share scripts/grok-pwa-shared.mjs.
+ * app documents. The deployed-app half lives in server/middleware/pwa.ts;
+ * both share scripts/pwa-shared.mjs.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -16,7 +16,7 @@ import {
   renderInstallPageHtml,
   renderWebManifest,
   snapshotOgIdentity,
-} from "./grok-pwa-shared.mjs";
+} from "./pwa-shared.mjs";
 
 export const GROK_OG_IDENTITY_ID = "virtual:grok-og-identity";
 
@@ -154,7 +154,7 @@ function wrapHtmlResponses(middlewares, cwd) {
 export function grokPwaPlugin() {
   let root = process.cwd();
   return {
-    name: "app-builder:grok-pwa",
+    name: "app-builder:pwa",
     configResolved(config) {
       root = config.root;
     },
@@ -188,3 +188,5 @@ export function grokPwaPlugin() {
     },
   };
 }
+
+export const pwaPlugin = grokPwaPlugin;

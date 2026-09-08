@@ -16,8 +16,8 @@ import {
   resolveOgCardAsset,
   snapshotOgIdentity,
   stripInstallParams,
-} from "./grok-pwa-shared.mjs";
-import { renderInstallPage } from "./grok-pwa-plugin.mjs";
+} from "./pwa-shared.mjs";
+import { renderInstallPage } from "./pwa-plugin.mjs";
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -486,11 +486,11 @@ test("renders the manifest with the per-app name", () => {
 test("vite config keeps the nitro serverDir wiring", () => {
   const viteConfig = readFileSync(join(TEMPLATE_ROOT, "vite.config.ts"), "utf8");
   assert.match(viteConfig, /serverDir:\s*"\.\/server"/);
-  assert.match(viteConfig, /grokPwaPlugin\(\)/);
+  assert.match(viteConfig, /pwaPlugin\(\)/);
 });
 
 test("nitro middleware and its bundled assets exist", () => {
-  const middleware = readFileSync(join(TEMPLATE_ROOT, "server/middleware/grok-pwa.ts"), "utf8");
+  const middleware = readFileSync(join(TEMPLATE_ROOT, "server/middleware/pwa.ts"), "utf8");
   assert.match(middleware, /install-page\.html\?raw/);
   assert.match(middleware, /virtual:grok-og-identity/);
   readFileSync(join(TEMPLATE_ROOT, "scripts/install-page.html"));
@@ -499,7 +499,7 @@ test("nitro middleware and its bundled assets exist", () => {
 });
 
 test("vite plugin bakes og identity as a virtual module", () => {
-  const plugin = readFileSync(join(TEMPLATE_ROOT, "scripts/grok-pwa-plugin.mjs"), "utf8");
+  const plugin = readFileSync(join(TEMPLATE_ROOT, "scripts/pwa-plugin.mjs"), "utf8");
   assert.match(plugin, /virtual:grok-og-identity/);
   assert.match(plugin, /snapshotOgIdentity/);
 });
