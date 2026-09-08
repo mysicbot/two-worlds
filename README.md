@@ -96,3 +96,7 @@ Deeper notes: [docs/CARTOGRAPHY.md](docs/CARTOGRAPHY.md).
 ## License
 
 Code is [MIT](LICENSE). Natural Earth data is public domain. Projections via d3-geo (ISC).
+
+## Application
+
+**[Two Worlds on GitHub](https://github.com/mysicbot/two-worlds)**
