@@ -1,5 +1,7 @@
 # Two Worlds: Exploring Map Projections
 
+**Open in a browser (no install):** [https://mysicbot.github.io/two-worlds/](https://mysicbot.github.io/two-worlds/)
+
 An educational WebGIS that places **Mercator** and **Equal Earth** on the same page, locked to the same geography. Same countries. Same coordinates. Different mathematics.
 
 The point is not to pick a winner. It is to feel how projection choice changes what a world map is allowed to say.
@@ -99,4 +101,7 @@ Code is [MIT](LICENSE). Natural Earth data is public domain. Projections via d3-
 
 ## Application
 
-**[Two Worlds on GitHub](https://github.com/mysicbot/two-worlds)**
+**Live classroom link (open in any browser):**  
+[https://mysicbot.github.io/two-worlds/](https://mysicbot.github.io/two-worlds/)
+
+Source code: [https://github.com/mysicbot/two-worlds](https://github.com/mysicbot/two-worlds)

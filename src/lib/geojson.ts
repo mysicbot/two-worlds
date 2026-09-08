@@ -20,7 +20,8 @@ let cached: Promise<CountryCollection> | null = null;
 
 export function loadCountries(): Promise<CountryCollection> {
   if (!cached) {
-    cached = fetch("/data/countries-110m.geojson").then(async (res) => {
+    const url = `${import.meta.env.BASE_URL}data/countries-110m.geojson`;
+    cached = fetch(url).then(async (res) => {
       if (!res.ok) throw new Error("Could not load Natural Earth countries.");
       return res.json() as Promise<CountryCollection>;
     });
