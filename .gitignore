@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.node_modules.lock
+
+# build / runtime
+dist/
+.output/
+.vercel/
+.nitro/
+.tanstack/
+.pglite/
+*.local
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# editor
+.idea/
+.vscode/
+*.swp
+
+# sandbox / generated (not part of the app)
+.grok/
+artifacts/
+attachments/
+screenshots/
+AGENTS.md
+AGENTS.project.md
+startup.sh
+
+# grok PWA chrome
+public/__grok/
