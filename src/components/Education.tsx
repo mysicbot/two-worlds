@@ -8,14 +8,13 @@ export function Education() {
         and direction all correct at once. Choosing a projection is choosing which property to protect
         — and which distortion to accept.
       </p>
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
         <article className="rounded-md border border-border bg-elevated p-4">
           <h3 className="font-display text-xl text-fg">Mercator, 1569</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Gerardus Mercator designed this projection for navigation. It is conformal: local angles
             and compass bearings are preserved, so a rhumb line is a straight line. The price is area.
-            Scale grows with the secant of latitude and becomes infinite at the poles. Greenland,
-            Canada, and Russia swell; tropical continents look modest.
+            Scale grows with the secant of latitude. Greenland, Canada, and Russia swell.
           </p>
           <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div>
@@ -31,19 +30,36 @@ export function Education() {
         <article className="rounded-md border border-border bg-elevated p-4">
           <h3 className="font-display text-xl text-fg">Equal Earth, 2018</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Bojan Šavrič, Tom Patterson, and Bernhard Jenny published Equal Earth as a visually
-            comfortable equal-area world projection. Areas of countries and continents can be compared
-            directly. Shapes and distances are not conformal, and the world outline is a rounded
-            pseudocylindrical — a deliberate aesthetic choice, not a defect.
+            Šavrič, Patterson, and Jenny published Equal Earth as a visually comfortable equal-area
+            world. Country sizes can be compared directly. The outline stays one piece — a continuous
+            pseudocylindrical — so oceans are intact and shapes still flex.
           </p>
           <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div>
               <dt className="text-subtle">Keeps</dt>
-              <dd className="text-fg">Area</dd>
+              <dd className="text-fg">Area, one world</dd>
             </div>
             <div>
               <dt className="text-subtle">Distorts</dt>
-              <dd className="text-fg">Shape, distance, direction</dd>
+              <dd className="text-fg">Shape, distance</dd>
+            </div>
+          </dl>
+        </article>
+        <article className="rounded-md border border-border bg-elevated p-4">
+          <h3 className="font-display text-xl text-fg">Goode Homolosine, 1923</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            John Paul Goode interrupted an equal-area composite (sinusoidal in the tropics, Mollweide
+            toward the poles) so continents keep more of their shape. The oceans take the tear. Same
+            area rule as Equal Earth — a different decision about where the lie goes.
+          </p>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt className="text-subtle">Keeps</dt>
+              <dd className="text-fg">Area, continents</dd>
+            </div>
+            <div>
+              <dt className="text-subtle">Distorts</dt>
+              <dd className="text-fg">Oceans, continuity</dd>
             </div>
           </dl>
         </article>
@@ -52,10 +68,9 @@ export function Education() {
         <h3 className="font-display text-xl text-fg">Tissot’s indicatrix</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
           Nicolas Auguste Tissot’s device (1859 / 1881) places a small circle of true geodesic radius
-          on the globe, then draws whatever that circle becomes on the map. If the result stays a
-          circle but grows, the projection is conformal — angles held, scale drifting. If it becomes
-          an ellipse whose area matches the original circle, the projection is equal-area — size held,
-          shape negotiated. The ellipses on these two maps are the same circles, in two languages.
+          on the globe, then draws whatever that circle becomes on the map. Circles that grow but stay
+          round are conformal. Ellipses of constant area are equal-area. Circles that disappear on
+          Homolosine sat on an interruption — the projection chose not to represent that ocean.
         </p>
       </article>
       <p className="mt-5 max-w-3xl text-sm leading-relaxed text-muted">
