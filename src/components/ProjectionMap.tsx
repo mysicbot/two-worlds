@@ -1,17 +1,18 @@
 import { geoContains, geoPath } from "d3-geo";
 import { useCallback, useEffect, useRef } from "react";
 import { featureMatches, type CountryCollection, type CountryFeature } from "@/lib/geojson";
-import type { GeoView } from "@/lib/geo-view";
+import { wheelZoomFactor, type GeoView } from "@/lib/geo-view";
 import {
   applyView,
   createProjection,
   featureCentroid,
   makeGraticule,
   makeParallels,
+  PROJECTION_META,
   sphericalAreaKm2,
   type ProjectionId,
 } from "@/lib/projections";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, viewFor } from "@/lib/store";
 import { tissotCenters, tissotPolygon } from "@/lib/tissot";
 
 type Props = {
@@ -25,18 +26,36 @@ function readToken(name: string, fallback: string) {
   return v || fallback;
 }
 
+function invertAt(
+  id: ProjectionId,
+  view: GeoView,
+  wrap: HTMLDivElement,
+  clientX: number,
+  clientY: number,
+): [number, number] | null {
+  const rect = wrap.getBoundingClientRect();
+  const projection = applyView(createProjection(id), view, wrap.clientWidth, wrap.clientHeight);
+  const inv = projection.invert?.([clientX - rect.left, clientY - rect.top]);
+  if (!inv || !Number.isFinite(inv[0]) || !Number.isFinite(inv[1])) return null;
+  if (Math.abs(inv[1]) > 90) return null;
+  return inv;
+}
+
 export function ProjectionMap({ id, collection }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     x: number;
     y: number;
     view: GeoView;
   } | null>(null);
-  const view = useAppStore((s) =>
-    s.syncMode === "sync" ? s.view : id === "mercator" ? s.mercatorView : s.equalView,
-  );
+  const view = useAppStore((s) => viewFor(s, id));
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const cursor = useAppStore((s) => s.cursor);
   const setViewFor = useAppStore((s) => s.setViewFor);
+  const setCursor = useAppStore((s) => s.setCursor);
   const highlightedNames = useAppStore((s) => s.highlightedNames);
   const highlightedContinents = useAppStore((s) => s.highlightedContinents);
   const excludedNames = useAppStore((s) => s.excludedNames);
@@ -151,36 +170,95 @@ export function ProjectionMap({ id, collection }: Props) {
     view,
   ]);
 
+  const drawOverlay = useCallback(() => {
+    const canvas = overlayRef.current;
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, wrap.clientWidth);
+    const height = Math.max(1, wrap.clientHeight);
+    if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+    }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    if (!cursor) return;
+    const projection = applyView(createProjection(id), view, width, height);
+    const pt = projection(cursor);
+    if (!pt) return;
+    const [x, y] = pt;
+    if (x < -20 || y < -20 || x > width + 20 || y > height + 20) return;
+    const stroke = readToken("--color-highlight", "#d4c48a");
+    ctx.save();
+    ctx.strokeStyle = stroke;
+    ctx.fillStyle = stroke;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.globalAlpha = 0.45;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, [cursor, id, view]);
+
   useEffect(() => {
     draw();
-  }, [draw]);
+    drawOverlay();
+  }, [draw, drawOverlay]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
-    const ro = new ResizeObserver(() => draw());
+    const ro = new ResizeObserver(() => {
+      draw();
+      drawOverlay();
+    });
     ro.observe(wrap);
     return () => ro.disconnect();
-  }, [draw]);
+  }, [draw, drawOverlay]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    let raf = 0;
+    let pending = 1;
+
+    const flush = () => {
+      raf = 0;
+      const factor = pending;
+      pending = 1;
+      const current = viewRef.current;
+      setViewFor(id, { center: current.center, lonSpan: current.lonSpan * factor });
+    };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const factor = e.deltaY > 0 ? 1.12 : 1 / 1.12;
-      setViewFor(id, { center: view.center, lonSpan: view.lonSpan * factor });
+      pending *= wheelZoomFactor(e);
+      if (!raf) raf = requestAnimationFrame(flush);
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
-    return () => canvas.removeEventListener("wheel", onWheel);
-  }, [id, setViewFor, view]);
+    return () => {
+      canvas.removeEventListener("wheel", onWheel);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [id, setViewFor]);
 
   function hitFeature(clientX: number, clientY: number): CountryFeature | null {
     const wrap = wrapRef.current;
     if (!wrap || !collection) return null;
-    const rect = wrap.getBoundingClientRect();
-    const projection = applyView(createProjection(id), view, wrap.clientWidth, wrap.clientHeight);
-    const inv = projection.invert?.([clientX - rect.left, clientY - rect.top]);
+    const inv = invertAt(id, view, wrap, clientX, clientY);
     if (!inv) return null;
     for (let i = collection.features.length - 1; i >= 0; i -= 1) {
       const f = collection.features[i];
@@ -195,18 +273,14 @@ export function ProjectionMap({ id, collection }: Props) {
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    const drag = dragRef.current;
     const wrap = wrapRef.current;
+    if (wrap) {
+      setCursor(invertAt(id, view, wrap, e.clientX, e.clientY));
+    }
+    const drag = dragRef.current;
     if (!drag || !wrap) return;
-    const projection = applyView(
-      createProjection(id),
-      drag.view,
-      wrap.clientWidth,
-      wrap.clientHeight,
-    );
-    const rect = wrap.getBoundingClientRect();
-    const start = projection.invert?.([drag.x - rect.left, drag.y - rect.top]);
-    const now = projection.invert?.([e.clientX - rect.left, e.clientY - rect.top]);
+    const start = invertAt(id, drag.view, wrap, drag.x, drag.y);
+    const now = invertAt(id, drag.view, wrap, e.clientX, e.clientY);
     if (!start || !now) return;
     setViewFor(id, {
       center: [drag.view.center[0] - (now[0] - start[0]), drag.view.center[1] - (now[1] - start[1])],
@@ -236,7 +310,11 @@ export function ProjectionMap({ id, collection }: Props) {
   }
 
   return (
-    <div ref={wrapRef} className="relative h-full min-h-[220px] w-full overflow-hidden bg-ocean">
+    <div
+      ref={wrapRef}
+      className="relative h-full min-h-[200px] w-full overflow-hidden bg-ocean"
+      onPointerLeave={() => setCursor(null)}
+    >
       <canvas
         ref={canvasRef}
         className="block h-full w-full touch-none"
@@ -246,7 +324,12 @@ export function ProjectionMap({ id, collection }: Props) {
         onPointerCancel={() => {
           dragRef.current = null;
         }}
-        aria-label={id === "mercator" ? "Mercator world map" : "Equal Earth world map"}
+        aria-label={`${PROJECTION_META[id].title} world map`}
+      />
+      <canvas
+        ref={overlayRef}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        aria-hidden
       />
     </div>
   );
