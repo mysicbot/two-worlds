@@ -16,3 +16,9 @@ export function clampView(view: GeoView): GeoView {
   const lonSpan = Math.max(18, Math.min(360, view.lonSpan));
   return { center: [lon, lat], lonSpan };
 }
+
+export function formatLonLat([lon, lat]: LonLat): string {
+  const ns = lat >= 0 ? "N" : "S";
+  const ew = lon >= 0 ? "E" : "W";
+  return `${Math.abs(lat).toFixed(1)}°${ns}  ${Math.abs(lon).toFixed(1)}°${ew}`;
+}
