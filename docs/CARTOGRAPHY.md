@@ -11,12 +11,13 @@ preserve area, local shape, distance, and direction everywhere at once
 (Gauss’s *Theorema Egregium*). Every world map therefore states a preference.
 
 This app holds **one geographic view** — a centre (λ, φ) and a longitude span —
-and draws it twice:
+and draws it three times:
 
-| Map | d3-geo constructor | Property protected |
+| Map | Constructor | Property protected |
 | --- | --- | --- |
-| Top | `geoMercator` | Local angles (conformal) |
-| Bottom | `geoEqualEarth` | Area |
+| Mercator | `geoMercator` | Local angles (conformal) |
+| Equal Earth | `geoEqualEarth` | Area, continuous world |
+| Goode Homolosine | `geoInterruptedHomolosine` | Area, continents; oceans interrupted |
 
 The countries are the same Natural Earth 1:110m features. The difference you
 see is the projection, not the data.
@@ -52,6 +53,16 @@ the world outline is rounded rather than rectangular. Poles are finite.
 Equal Earth is the right instinct whenever the question is “how big is this
 relative to that?”
 
+## Goode Homolosine
+
+John Paul Goode, 1923. An interrupted equal-area composite: sinusoidal in the
+tropics, Mollweide toward the poles, with cuts placed in the oceans so
+continents keep more of their shape. Area is still conserved. Continuity is
+what is sacrificed — Tissot circles that sit on a lobe cut simply vanish.
+
+Equal Earth and Homolosine answer the same geometric question (area) with a
+different design choice: keep the world in one piece, or tear the water.
+
 ## Tissot’s indicatrix
 
 Nicolas Auguste Tissot (1859, developed 1881) visualises the Jacobian of the
@@ -66,6 +77,7 @@ the countries.
 | --- | --- |
 | Mercator | Stay circular (conformal) and grow with latitude |
 | Equal Earth | Become ellipses whose *area* stays comparable (equal-area) |
+| Homolosine | Same area rule as Equal Earth; some ellipses disappear in ocean cuts |
 
 They are drawn on a 30° × 30° lattice, plus 75° to show polar inflation. Circles
 that collapse or explode off the canvas (clipping, antipodes) are skipped.
@@ -76,7 +88,7 @@ the circle already samples a range of scale, so the ellipses are slightly
 
 ## Synchronized geographic view
 
-The two canvases do not share a pixel transform. They share a `GeoView`:
+The canvases do not share a pixel transform. They share a `GeoView`:
 
 ```ts
 type GeoView = {
@@ -85,10 +97,9 @@ type GeoView = {
 };
 ```
 
-Pan and wheel-zoom write a new `GeoView`. In **Synchronized** mode both maps
-read the same object; in **Independent** mode each map has its own. Fitting
-uses a scale-1 probe of the west/east meridians of that span, then scales the
-d3 projection so that span fills the canvas.
+Pan and wheel-zoom write a new `GeoView`. In **Synchronized** mode all maps
+read the same object; in **Independent** mode each map has its own. Scale is
+continuous: a world fit of the globe, then multiplied by `360 / lonSpan`.
 
 Explorer chips change the shared view (Africa, Greenland, Asia, …). Tapping a
 country does **not** change the view — it only picks the feature for the area
@@ -118,6 +129,9 @@ more coastline — expect a heavier canvas pass.
   Paper 1395, 1987.
 - Šavrič, Patterson, Jenny. “The Equal Earth map projection.”
   *International Journal of Geographical Information Science*, 2018.
+- Goode, J. Paul. “The Homolosine projection: a new device for portraying the
+  Earth’s surface entire.” *Annals of the Association of American Geographers*,
+  1925.
 - Tissot, N. A. *Mémoire sur la représentation des surfaces et les projections
   des cartes géographiques*, 1881.
 - Natural Earth. [naturalearthdata.com](https://www.naturalearthdata.com/).
