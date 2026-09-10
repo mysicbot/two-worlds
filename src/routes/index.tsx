@@ -33,12 +33,12 @@ function Home() {
               Exploring Map Projections
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-              Mercator above, Equal Earth below. Same countries. Same coordinates. Different
-              mathematics.
+              Mercator, Equal Earth, and Goode Homolosine. Same countries. Same coordinates.
+              Different mathematics.
             </p>
           </div>
           <p className="max-w-xs text-xs leading-relaxed text-subtle sm:text-right">
-            Natural Earth 1:110m countries · WGS84 geodesy · d3-geo Mercator & Equal Earth
+            Natural Earth 1:110m countries · WGS84 geodesy · d3-geo + Goode Homolosine
           </p>
         </header>
 
@@ -50,14 +50,16 @@ function Home() {
           </p>
         ) : null}
 
-        <div className="flex min-h-[70vh] flex-col gap-3">
-          <MapPane id="mercator" collection={collection} />
-          <div className="flex items-center justify-center gap-3 text-[11px] tracking-[0.2em] text-subtle uppercase">
-            <span className="h-px flex-1 bg-border" />
-            Compare
-            <span className="h-px flex-1 bg-border" />
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="min-h-[240px] sm:min-h-[280px] lg:col-span-2 lg:min-h-[300px]">
+            <MapPane id="mercator" collection={collection} />
           </div>
-          <MapPane id="equalEarth" collection={collection} />
+          <div className="min-h-[240px] sm:min-h-[280px]">
+            <MapPane id="equalEarth" collection={collection} />
+          </div>
+          <div className="min-h-[240px] sm:min-h-[280px]">
+            <MapPane id="homolosine" collection={collection} />
+          </div>
         </div>
 
         <DistortionExplorer />
@@ -65,10 +67,10 @@ function Home() {
         <Education />
 
         <footer className="border-t border-border pt-4 pb-8 text-xs leading-relaxed text-subtle">
-          Open geographic data from Natural Earth. Projections implemented with d3-geo (Mercator and
-          Equal Earth). Indicatrices are geodesic circles of 3° radius (~330 km). Areas are spherical
-          estimates from the simplified 1:110m geometries — good for comparison, not cadastral
-          measurement.
+          Open geographic data from Natural Earth. Projections implemented with d3-geo (Mercator,
+          Equal Earth) and d3-geo-projection (Goode interrupted Homolosine). Indicatrices are
+          geodesic circles of 3° radius (~330 km). Areas are spherical estimates from the simplified
+          1:110m geometries — good for comparison, not cadastral measurement.
         </footer>
       </div>
     </main>
