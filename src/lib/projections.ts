@@ -28,28 +28,23 @@ export function applyView(
   height: number,
 ): GeoProjection {
   const pad = 12;
-  const extent: [[number, number], [number, number]] = [
-    [pad, pad],
-    [width - pad, height - pad],
-  ];
-
-  // World span: fit the globe. Interrupted projections cannot be scaled from a
-  // west-east probe because those points may fall in an ocean cut.
-  if (view.lonSpan >= 300) {
-    return projection.fitExtent(extent, SPHERE);
+  const right = Math.max(pad + 1, width - pad);
+  const bottom = Math.max(pad + 1, height - pad);
+  projection.fitExtent(
+    [
+      [pad, pad],
+      [right, bottom],
+    ],
+    SPHERE,
+  );
+  const worldScale = projection.scale();
+  projection.scale(worldScale * (360 / view.lonSpan));
+  const pt = projection(view.center);
+  if (pt) {
+    const [tx, ty] = projection.translate();
+    projection.translate([tx + width / 2 - pt[0], ty + height / 2 - pt[1]]);
   }
-
-  projection.center(view.center).translate([width / 2, height / 2]).scale(1);
-  const west: [number, number] = [view.center[0] - view.lonSpan / 2, view.center[1]];
-  const east: [number, number] = [view.center[0] + view.lonSpan / 2, view.center[1]];
-  const a = projection(west);
-  const b = projection(east);
-  const dx = a && b ? Math.abs(b[0] - a[0]) : 0;
-  if (dx > 1e-3) {
-    const target = Math.max(40, width - pad * 2);
-    return projection.scale(target / dx);
-  }
-  return projection.fitExtent(extent, SPHERE);
+  return projection;
 }
 
 export function sphericalAreaKm2(feature: GeoPermissibleObjects): number {

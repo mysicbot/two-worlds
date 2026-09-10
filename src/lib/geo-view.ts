@@ -17,6 +17,14 @@ export function clampView(view: GeoView): GeoView {
   return { center: [lon, lat], lonSpan };
 }
 
+/** Convert a wheel event into a multiplicative lonSpan factor. */
+export function wheelZoomFactor(e: WheelEvent): number {
+  let dy = e.deltaY;
+  if (e.deltaMode === 1) dy *= 16;
+  else if (e.deltaMode === 2) dy *= 80;
+  return Math.exp(dy * 0.00155);
+}
+
 export function formatLonLat([lon, lat]: LonLat): string {
   const ns = lat >= 0 ? "N" : "S";
   const ew = lon >= 0 ? "E" : "W";

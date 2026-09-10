@@ -52,9 +52,9 @@ export function AreaCompare() {
           hint="Area scale factor sec²(φ) at the country centroid. The country itself does not get larger."
         />
         <Stat
-          label="Equal Earth"
+          label="Equal-area maps"
           value="True area"
-          hint="Equal-area projection: relative country sizes stay comparable across latitudes."
+          hint="Equal Earth and Goode Homolosine both keep area. Homolosine splits the oceans so continents stay closer to their true shape."
         />
       </div>
       <p className="mt-4 text-sm leading-relaxed text-muted">{visualVsAfricaHint}</p>
