@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { formatLonLat } from "@/lib/geo-view";
+import { mercatorAreaScale } from "@/lib/regions";
 import { useAppStore } from "@/lib/store";
 
 export function Controls() {
@@ -10,6 +12,7 @@ export function Controls() {
   const toggleTissot = useAppStore((s) => s.toggleTissot);
   const demoLat = useAppStore((s) => s.demoLat);
   const setDemoLat = useAppStore((s) => s.setDemoLat);
+  const cursor = useAppStore((s) => s.cursor);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -64,11 +67,23 @@ export function Controls() {
           </span>
         </div>
       </div>
+      <p className="font-mono text-xs text-muted">
+        {cursor ? (
+          <>
+            <span className="text-highlight">{formatLonLat(cursor)}</span>
+            <span className="text-subtle"> · </span>
+            Mercator area {mercatorAreaScale(cursor[1]).toFixed(2)}×
+            <span className="text-subtle"> at this latitude</span>
+          </>
+        ) : (
+          <span className="text-subtle">Hover any map — the same lon/lat marks all three projections.</span>
+        )}
+      </p>
       {showTissot ? (
         <p className="max-w-3xl text-xs leading-relaxed text-muted sm:text-sm">
           Each ellipse is a circle of equal geodesic radius (~330 km). Mercator keeps them circular
-          and grows them with latitude (conformal). Equal Earth flattens them but keeps their area
-          (equal-area).
+          and grows them with latitude. Equal Earth and Goode Homolosine keep their area; Homolosine
+          also tears the oceans, so some circles sit on a cut and vanish.
         </p>
       ) : null}
     </div>
