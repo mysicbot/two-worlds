@@ -54,7 +54,7 @@ export function AreaCompare() {
         <Stat
           label="Equal-area maps"
           value="True area"
-          hint="Equal Earth and Goode Homolosine both keep area. Homolosine splits the oceans so continents stay closer to their true shape."
+          hint="Gall–Peters, Equal Earth, and Homolosine keep area. Winkel Tripel does not — it compromises. Homolosine splits the oceans so continents stay closer to their true shape."
         />
       </div>
       <p className="mt-4 text-sm leading-relaxed text-muted">{visualVsAfricaHint}</p>

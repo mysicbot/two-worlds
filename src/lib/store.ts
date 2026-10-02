@@ -19,6 +19,8 @@ type AppState = {
   mercatorView: GeoView;
   equalView: GeoView;
   homolosineView: GeoView;
+  winkelView: GeoView;
+  petersView: GeoView;
   cursor: LonLat | null;
   selectedRegion: RegionId | null;
   highlightedNames: string[];
@@ -51,8 +53,18 @@ function allViews(view: GeoView) {
     mercatorView: view,
     equalView: view,
     homolosineView: view,
+    winkelView: view,
+    petersView: view,
   };
 }
+
+const VIEW_KEY = {
+  mercator: "mercatorView",
+  equalEarth: "equalView",
+  homolosine: "homolosineView",
+  winkel: "winkelView",
+  peters: "petersView",
+} as const satisfies Record<ProjectionId, keyof ReturnType<typeof allViews>>;
 
 export const useAppStore = create<AppState>((set) => ({
   syncMode: "sync",
@@ -60,6 +72,8 @@ export const useAppStore = create<AppState>((set) => ({
   mercatorView: WORLD_VIEW,
   equalView: WORLD_VIEW,
   homolosineView: WORLD_VIEW,
+  winkelView: WORLD_VIEW,
+  petersView: WORLD_VIEW,
   cursor: null,
   selectedRegion: null,
   highlightedNames: [],
@@ -74,9 +88,7 @@ export const useAppStore = create<AppState>((set) => ({
     set((s) => {
       const view = clampView(next);
       if (s.syncMode === "sync") return allViews(view);
-      if (which === "mercator") return { mercatorView: view };
-      if (which === "homolosine") return { homolosineView: view };
-      return { equalView: view };
+      return { [VIEW_KEY[which]]: view };
     }),
   setCursor: (cursor) => set({ cursor }),
   focusRegion: (id, names, continents, excludeNames, view) =>
@@ -105,7 +117,5 @@ export const useAppStore = create<AppState>((set) => ({
 
 export function viewFor(s: AppState, id: ProjectionId): GeoView {
   if (s.syncMode === "sync") return s.view;
-  if (id === "mercator") return s.mercatorView;
-  if (id === "homolosine") return s.homolosineView;
-  return s.equalView;
+  return s[VIEW_KEY[id]];
 }

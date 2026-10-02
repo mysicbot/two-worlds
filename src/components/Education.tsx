@@ -8,7 +8,7 @@ export function Education() {
         and direction all correct at once. Choosing a projection is choosing which property to protect
         — and which distortion to accept.
       </p>
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article className="rounded-md border border-border bg-elevated p-4">
           <h3 className="font-display text-xl text-fg">Mercator, 1569</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
@@ -24,6 +24,25 @@ export function Education() {
             <div>
               <dt className="text-subtle">Distorts</dt>
               <dd className="text-fg">Area, distance, scale</dd>
+            </div>
+          </dl>
+        </article>
+        <article className="rounded-md border border-border bg-elevated p-4">
+          <h3 className="font-display text-xl text-fg">Gall–Peters, 1855</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            James Gall’s cylindrical equal-area, with standard parallels at 45°. Arno Peters promoted
+            it in 1973 as a political reply to Mercator. Area is honest — Africa is no longer shrunk —
+            but the tropics are stretched tall and the poles become lines. Equal-area is not the same
+            as fair-looking.
+          </p>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt className="text-subtle">Keeps</dt>
+              <dd className="text-fg">Area</dd>
+            </div>
+            <div>
+              <dt className="text-subtle">Distorts</dt>
+              <dd className="text-fg">Shape, badly</dd>
             </div>
           </dl>
         </article>
@@ -63,14 +82,34 @@ export function Education() {
             </div>
           </dl>
         </article>
+        <article className="rounded-md border border-border bg-elevated p-4 md:col-span-2 xl:col-span-2">
+          <h3 className="font-display text-xl text-fg">Winkel Tripel, 1921</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Oswald Winkel averaged the equirectangular and Aitoff projections. The result protects
+            neither area nor angles. Both distortions stay mild, which is why it became National
+            Geographic’s world map and why people say it looks right. Looking right is not a geometric
+            property.
+          </p>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt className="text-subtle">Keeps</dt>
+              <dd className="text-fg">A visual balance</dd>
+            </div>
+            <div>
+              <dt className="text-subtle">Distorts</dt>
+              <dd className="text-fg">Area and shape, gently</dd>
+            </div>
+          </dl>
+        </article>
       </div>
       <article className="mt-4 rounded-md border border-border bg-elevated p-4">
         <h3 className="font-display text-xl text-fg">Tissot’s indicatrix</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
           Nicolas Auguste Tissot’s device (1859 / 1881) places a small circle of true geodesic radius
           on the globe, then draws whatever that circle becomes on the map. Circles that grow but stay
-          round are conformal. Ellipses of constant area are equal-area. Circles that disappear on
-          Homolosine sat on an interruption — the projection chose not to represent that ocean.
+          round are conformal. Ellipses of constant area are equal-area — tall and thin on Gall–Peters,
+          milder on Equal Earth. Circles that change both size and shape, as on Winkel Tripel, are a
+          compromise. Circles that disappear on Homolosine sat on an interruption.
         </p>
       </article>
       <p className="mt-5 max-w-3xl text-sm leading-relaxed text-muted">

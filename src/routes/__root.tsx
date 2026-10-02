@@ -14,7 +14,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Compare Mercator and Equal Earth world projections side by side. See how map choice changes size, shape, and distortion.",
+          "Five world projections of the same countries: Mercator, Gall–Peters, Equal Earth, Homolosine, and Winkel Tripel.",
       },
       { name: "theme-color", content: "#0b100e" },
     ],

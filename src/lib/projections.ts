@@ -7,18 +7,31 @@ import {
   type GeoPermissibleObjects,
   type GeoProjection,
 } from "d3-geo";
-import { geoInterruptedHomolosine } from "d3-geo-projection";
+import {
+  geoCylindricalEqualArea,
+  geoInterruptedHomolosine,
+  geoWinkel3,
+} from "d3-geo-projection";
 import type { GeoView } from "./geo-view";
 
-export type ProjectionId = "mercator" | "equalEarth" | "homolosine";
+export type ProjectionId = "mercator" | "peters" | "equalEarth" | "homolosine" | "winkel";
 
 const EARTH_RADIUS_KM = 6371;
 const SPHERE = { type: "Sphere" } as GeoPermissibleObjects;
 
 export function createProjection(id: ProjectionId): GeoProjection {
-  if (id === "mercator") return geoMercator().precision(0.3);
-  if (id === "homolosine") return geoInterruptedHomolosine().precision(0.3);
-  return geoEqualEarth().precision(0.3);
+  switch (id) {
+    case "mercator":
+      return geoMercator().precision(0.3);
+    case "peters":
+      return geoCylindricalEqualArea().parallel(45).precision(0.3);
+    case "homolosine":
+      return geoInterruptedHomolosine().precision(0.3);
+    case "winkel":
+      return geoWinkel3().precision(0.3);
+    case "equalEarth":
+      return geoEqualEarth().precision(0.3);
+  }
 }
 
 export function applyView(
@@ -83,6 +96,13 @@ export const PROJECTION_META: Record<
     authors: "Gerardus Mercator",
     tone: "text-mercator",
   },
+  peters: {
+    title: "Gall–Peters",
+    subtitle: "Equal-area · cylindrical",
+    year: "1855",
+    authors: "James Gall · Arno Peters",
+    tone: "text-peters",
+  },
   equalEarth: {
     title: "Equal Earth",
     subtitle: "Equal-area · continuous",
@@ -96,5 +116,12 @@ export const PROJECTION_META: Record<
     year: "1923",
     authors: "John Paul Goode",
     tone: "text-highlight",
+  },
+  winkel: {
+    title: "Winkel Tripel",
+    subtitle: "Compromise · continuous",
+    year: "1921",
+    authors: "Oswald Winkel",
+    tone: "text-winkel",
   },
 };

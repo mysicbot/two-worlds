@@ -8,14 +8,14 @@ computed in the browser with [d3-geo](https://github.com/d3/d3-geo).
 
 - React 19 + TanStack Start / Router
 - Zustand for view, highlight, and UI state
-- Canvas 2D for both maps (`ProjectionMap`)
+- Canvas 2D for every map (`ProjectionMap`)
 - Natural Earth countries as static GeoJSON (`public/data/countries-110m.geojson`)
 
 ## Layout of the interesting code
 
 | Path | Role |
 | --- | --- |
-| `src/lib/projections.ts` | `geoMercator` / `geoEqualEarth`, view fitting, spherical area |
+| `src/lib/projections.ts` | Mercator, Gall–Peters, Equal Earth, Homolosine, Winkel Tripel; view fitting; spherical area |
 | `src/lib/tissot.ts` | Lattice of geodesic circles (`geoCircle`, 3° radius) |
 | `src/lib/geo-view.ts` | Shared geographic camera: centre + longitude span |
 | `src/lib/geojson.ts` | Load + match Natural Earth features |
@@ -44,7 +44,7 @@ A tap that did not drag selects a country; the view does not jump.
 ## What this is not
 
 - Not Leaflet / MapLibre / OpenLayers. Those stacks hide the projection behind
-  a Web Mercator tile plane. The whole point of this app is two *different*
+  a Web Mercator tile plane. The whole point of this app is several *different*
   projections of the same lon/lat data.
 - Not a measurement tool. 1:110m geometries and spherical area are for
   teaching relative size.

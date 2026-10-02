@@ -2,7 +2,7 @@
 
 **Open in a browser (no install):** [https://mysicbot.github.io/two-worlds/](https://mysicbot.github.io/two-worlds/)
 
-An educational WebGIS that places **Mercator**, **Equal Earth**, and **Goode Homolosine** on the same page, locked to the same geography. Same countries. Same coordinates. Different mathematics.
+An educational WebGIS that places **Mercator**, **Gall–Peters**, **Equal Earth**, **Goode Homolosine**, and **Winkel Tripel** on the same page, locked to the same geography. Same countries. Same coordinates. Different mathematics.
 
 The point is not to pick a winner. It is to feel how projection choice changes what a world map is allowed to say.
 
@@ -26,8 +26,8 @@ This app makes that trade-off visible instead of burying it in a code.
 
 | Do this | What you should notice |
 | --- | --- |
-| Leave Tissot on | Mercator circles stay round and swell toward the poles; Equal Earth ellipses stay similar in area; Homolosine keeps area and tears the oceans |
-| Hover any map | A shared lon/lat crosshair appears on all three projections |
+| Leave Tissot on | Mercator circles stay round and swell toward the poles. Gall–Peters, Equal Earth, and Homolosine keep area — Peters stretches the tropics tall, Homolosine tears the oceans. Winkel Tripel changes both size and shape, gently |
+| Hover any map | A shared lon/lat crosshair appears on all five projections |
 | Open **Greenland** or **Africa** | Same land, wildly different visual weight |
 | Open **Asia**, **India**, **China**, or **Japan** | Mid-latitude vs tropical scale on the conformal map |
 | Tap a country | Geographic area vs Mercator area-scale \(\sec^2\varphi\) at the centroid — the view does not jump |
@@ -40,10 +40,12 @@ Pan and scroll-zoom work on both canvases. **Synchronized** (default) keeps one 
 
 - Geographic coordinates (lon/lat on WGS84) versus projected coordinates
 - **Conformal** Mercator: local angles and rhumb lines held; area scale = \(\sec^2\varphi\)
+- **Equal-area cylindrical** Gall–Peters: true area, tropics stretched tall, poles as lines
 - **Equal-area** Equal Earth: country sizes comparable; shapes flex; the world stays one piece
 - **Equal-area interrupted** Goode Homolosine: same area rule, oceans split so continents keep more of their shape
+- **Compromise** Winkel Tripel: neither equal-area nor conformal; the map that “looks right”
 - Shared **crosshair**: one lon/lat marked on every projection, with Mercator area scale at that latitude
-- **Tissot’s indicatrix**: the same geodesic circle (~330 km / 3°) drawn in both projections
+- **Tissot’s indicatrix**: the same geodesic circle (~330 km / 3°) drawn in every projection
 - Distortion Explorer for Africa, Canada, Greenland, Europe, Asia, India, China, Japan, United States, Australia, South America, Antarctica
 - Synchronized navigation so the same extent is read in two languages at once
 
@@ -51,7 +53,7 @@ Pan and scroll-zoom work on both canvases. **Synchronized** (default) keeps one 
 
 - React 19 and TanStack Start
 - [d3-geo](https://github.com/d3/d3-geo) — `geoMercator`, `geoEqualEarth`, `geoCircle`
-- [d3-geo-projection](https://github.com/d3/d3-geo-projection) — `geoInterruptedHomolosine`
+- [d3-geo-projection](https://github.com/d3/d3-geo-projection) — `geoCylindricalEqualArea` (Gall–Peters, parallel 45°), `geoInterruptedHomolosine`, `geoWinkel3`
 - Natural Earth 1:110m admin-0 countries (GeoJSON)
 - Canvas rendering — no map-tile vendor, no backend GIS
 
@@ -69,7 +71,7 @@ Then open the URL Vite prints. Typecheck with `npm run typecheck`.
 ## Repository
 
 ```
-src/lib/projections.ts   Mercator / Equal Earth / Homolosine, view fitting, spherical area
+src/lib/projections.ts   Five projections, view fitting, spherical area
 src/lib/tissot.ts        Geodesic circles for the indicatrix
 src/lib/geo-view.ts      Shared camera: centre + longitude span
 src/lib/regions.ts       Distortion Explorer
@@ -92,7 +94,7 @@ Asia is highlighted as `CONTINENT = Asia`, excluding Russia (Natural Earth class
 | Control | Concept |
 | --- | --- |
 | Synchronized / Independent | Shared geographic view versus separate exploration |
-| Distortion Explorer | Same feature, two projected appearances |
+| Distortion Explorer | Same feature, five projected appearances |
 | Country tap | Geographic area vs Mercator area-scale at centroid latitude |
 | Tissot indicatrix | Circle of true scale → ellipse of distortion |
 | Latitude lines / parallel slider | Graticule spacing: Mercator stretches meridians toward the poles |

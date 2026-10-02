@@ -11,13 +11,15 @@ preserve area, local shape, distance, and direction everywhere at once
 (Gauss’s *Theorema Egregium*). Every world map therefore states a preference.
 
 This app holds **one geographic view** — a centre (λ, φ) and a longitude span —
-and draws it three times:
+and draws it five times:
 
 | Map | Constructor | Property protected |
 | --- | --- | --- |
 | Mercator | `geoMercator` | Local angles (conformal) |
+| Gall–Peters | `geoCylindricalEqualArea().parallel(45)` | Area, cylindrical |
 | Equal Earth | `geoEqualEarth` | Area, continuous world |
 | Goode Homolosine | `geoInterruptedHomolosine` | Area, continents; oceans interrupted |
+| Winkel Tripel | `geoWinkel3` | Neither — a visual compromise |
 
 The countries are the same Natural Earth 1:110m features. The difference you
 see is the projection, not the data.
@@ -43,6 +45,20 @@ The country panel reports \(\sec^2\varphi\) at the feature centroid as
 “Mercator appearance.” That is the infinitesimal area scale at one point, not
 the integrated scale over the polygon.
 
+## Gall–Peters
+
+James Gall, 1855; promoted by Arno Peters from 1967 and widely from 1973.
+Cylindrical equal-area with standard parallels at 45°:
+
+- \(x = R\,\lambda\cos 45^\circ\)
+- \(y = R\,\sin\varphi / \cos 45^\circ\)
+
+Area scale is 1 everywhere. Shape is not. At the equator the meridian scale is
+\(\sqrt{2}\) and the parallel scale is \(1/\sqrt{2}\), so Africa and South
+America are drawn tall and narrow. Toward the poles the stretch reverses and
+the poles themselves are lines, not points. It is the direct classroom reply
+to Mercator: the sizes are honest, and the shapes are still a lie.
+
 ## Equal Earth
 
 Šavrič, Patterson & Jenny, 2018. Pseudocylindrical equal-area, designed as a
@@ -62,6 +78,20 @@ what is sacrificed — Tissot circles that sit on a lobe cut simply vanish.
 
 Equal Earth and Homolosine answer the same geometric question (area) with a
 different design choice: keep the world in one piece, or tear the water.
+Gall–Peters answers it a third way: stay cylindrical, and accept severe shape
+distortion.
+
+## Winkel Tripel
+
+Oswald Winkel, 1921. The arithmetic mean of the equirectangular projection
+(standard parallel \(\arccos(2/\pi)\)) and the Aitoff projection. It is not
+equal-area and not conformal. Both errors are moderate, which is why it
+replaced Robinson as National Geographic’s world map in 1998 and why it is
+often described as the projection that “looks right.”
+
+Equal Earth was designed in part as an equal-area alternative to Robinson and
+Winkel Tripel for thematic maps. Putting them on the same page is the point:
+a map can look balanced and still be the wrong tool for an area question.
 
 ## Tissot’s indicatrix
 
@@ -76,8 +106,10 @@ the countries.
 | Projection | What the ellipses do |
 | --- | --- |
 | Mercator | Stay circular (conformal) and grow with latitude |
-| Equal Earth | Become ellipses whose *area* stays comparable (equal-area) |
+| Gall–Peters | Keep a constant area and stretch tall in the tropics |
+| Equal Earth | Become ellipses whose *area* stays comparable |
 | Homolosine | Same area rule as Equal Earth; some ellipses disappear in ocean cuts |
+| Winkel Tripel | Change both size and shape, usually less violently than Mercator or Peters |
 
 They are drawn on a 30° × 30° lattice, plus 75° to show polar inflation. Circles
 that collapse or explode off the canvas (clipping, antipodes) are skipped.
@@ -126,7 +158,10 @@ more coastline — expect a heavier canvas pass.
 ## Further reading
 
 - Snyder, John P. *Map Projections — A Working Manual*. USGS Professional
-  Paper 1395, 1987.
+  Paper 1395, 1987. (Gall–Peters as cylindrical equal-area, φ = 45°; Winkel
+  Tripel.)
+- Winkel, Oswald. “Neue Gradnetzentwürfe.” *Petermanns Geographische
+  Mitteilungen*, 1921.
 - Šavrič, Patterson, Jenny. “The Equal Earth map projection.”
   *International Journal of Geographical Information Science*, 2018.
 - Goode, J. Paul. “The Homolosine projection: a new device for portraying the

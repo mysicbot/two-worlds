@@ -76,14 +76,15 @@ export function Controls() {
             <span className="text-subtle"> at this latitude</span>
           </>
         ) : (
-          <span className="text-subtle">Hover any map — the same lon/lat marks all three projections.</span>
+          <span className="text-subtle">Hover any map — the same lon/lat marks every projection.</span>
         )}
       </p>
       {showTissot ? (
         <p className="max-w-3xl text-xs leading-relaxed text-muted sm:text-sm">
           Each ellipse is a circle of equal geodesic radius (~330 km). Mercator keeps them circular
-          and grows them with latitude. Equal Earth and Goode Homolosine keep their area; Homolosine
-          also tears the oceans, so some circles sit on a cut and vanish.
+          and grows them with latitude. Gall–Peters, Equal Earth, and Homolosine keep their area —
+          Homolosine also tears the oceans, so some circles vanish. Winkel Tripel changes both size
+          and shape, usually gently.
         </p>
       ) : null}
     </div>

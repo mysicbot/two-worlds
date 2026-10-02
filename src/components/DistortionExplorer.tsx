@@ -37,7 +37,7 @@ export function DistortionExplorer() {
         </button>
       </div>
       <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted">
-        Jump to a region on both maps. The highlight is the same geography; the difference you see is
+        Jump to a region on every map. The highlight is the same geography; the difference you see is
         the projection.
       </p>
       <div className="flex flex-wrap gap-2">
@@ -85,7 +85,7 @@ export function DistortionExplorer() {
         </div>
       ) : (
         <p className="mt-4 text-sm text-subtle">
-          Select a region, or tap a country on either map for a measured comparison.
+          Select a region, or tap a country on any map for a measured comparison.
         </p>
       )}
     </section>
