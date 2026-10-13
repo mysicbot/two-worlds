@@ -1,24 +1,30 @@
 import { geoContains, geoPath } from "d3-geo";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { featureMatches, type CountryCollection, type CountryFeature } from "@/lib/geojson";
 import { wheelZoomFactor, type GeoView } from "@/lib/geo-view";
 import {
   applyView,
   createProjection,
   featureCentroid,
+  invertPoint,
   makeGraticule,
   makeParallels,
   PROJECTION_META,
+  projectPoint,
   sphericalAreaKm2,
+  zoomViewAbout,
   type ProjectionId,
 } from "@/lib/projections";
 import { useAppStore, viewFor } from "@/lib/store";
-import { tissotCenters, tissotPolygon } from "@/lib/tissot";
+import { tissotPolygons } from "@/lib/tissot";
 
 type Props = {
   id: ProjectionId;
   collection: CountryCollection | null;
 };
+
+const GRATICULE = makeGraticule();
+const INDICATRIX = tissotPolygons();
 
 function readToken(name: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
@@ -53,6 +59,7 @@ export function ProjectionMap({ id, collection }: Props) {
   const view = useAppStore((s) => viewFor(s, id));
   const viewRef = useRef(view);
   viewRef.current = view;
+  const gesturingRef = useRef(false);
   const cursor = useAppStore((s) => s.cursor);
   const setViewFor = useAppStore((s) => s.setViewFor);
   const setCursor = useAppStore((s) => s.setCursor);
@@ -70,7 +77,7 @@ export function ProjectionMap({ id, collection }: Props) {
     const wrap = wrapRef.current;
     if (!canvas || !wrap || !collection) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = gesturingRef.current ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(1, wrap.clientWidth);
     const height = Math.max(1, wrap.clientHeight);
     if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
@@ -99,9 +106,39 @@ export function ProjectionMap({ id, collection }: Props) {
     const path = geoPath(projection, ctx);
     const maxArea = width * height * 0.22;
 
+    if (gesturingRef.current) {
+      projection.precision(2.5);
+      if (showGraticule) {
+        ctx.beginPath();
+        path(GRATICULE);
+        ctx.strokeStyle = graticuleColor;
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      path(collection as never);
+      ctx.fillStyle = land;
+      ctx.fill();
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+      if (highlightedNames.length || highlightedContinents.length || picked) {
+        for (const feature of collection.features) {
+          const active = featureMatches(feature, highlightedNames, highlightedContinents, excludedNames);
+          const isPick = Boolean(picked && picked.name === feature.properties.NAME);
+          if (!active && !isPick) continue;
+          ctx.beginPath();
+          path(feature as never);
+          ctx.fillStyle = landHi;
+          ctx.fill();
+        }
+      }
+      return;
+    }
+
     if (showGraticule) {
       ctx.beginPath();
-      path(makeGraticule(15));
+      path(GRATICULE);
       ctx.strokeStyle = graticuleColor;
       ctx.lineWidth = 0.6;
       ctx.stroke();
@@ -132,8 +169,7 @@ export function ProjectionMap({ id, collection }: Props) {
     }
 
     if (showTissot) {
-      for (const center of tissotCenters()) {
-        const poly = tissotPolygon(center);
+      for (const poly of INDICATRIX) {
         const area = Math.abs(path.area(poly));
         if (!Number.isFinite(area) || area < 8 || area > maxArea) continue;
         ctx.beginPath();
@@ -174,7 +210,7 @@ export function ProjectionMap({ id, collection }: Props) {
     const canvas = overlayRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = gesturingRef.current ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(1, wrap.clientWidth);
     const height = Math.max(1, wrap.clientHeight);
     if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
@@ -213,45 +249,169 @@ export function ProjectionMap({ id, collection }: Props) {
     ctx.restore();
   }, [cursor, id, view]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     draw();
+  }, [draw]);
+
+  useLayoutEffect(() => {
     drawOverlay();
-  }, [draw, drawOverlay]);
+  }, [drawOverlay]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
     const ro = new ResizeObserver(() => {
-      draw();
-      drawOverlay();
+      redrawRef.current();
     });
     ro.observe(wrap);
     return () => ro.disconnect();
-  }, [draw, drawOverlay]);
+  }, []);
+
+  const zoomApi = useRef({
+    zoomBy: (_factor: number, _x: number, _y: number) => {},
+    zoomFrom: (_base: GeoView, _factor: number, _x: number, _y: number) => {},
+    setImmediate: (_view: GeoView) => {},
+    end: () => {},
+  });
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{ dist: number; view: GeoView } | null>(null);
+  const pinchedRef = useRef(false);
+  const redrawRef = useRef(() => {});
+  redrawRef.current = () => {
+    draw();
+    drawOverlay();
+  };
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    let raf = 0;
-    let pending = 1;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
 
-    const flush = () => {
-      raf = 0;
-      const factor = pending;
-      pending = 1;
-      const current = viewRef.current;
-      setViewFor(id, { center: current.center, lonSpan: current.lonSpan * factor });
+    let painted = viewRef.current;
+    let target = painted;
+    let anchorGeo: [number, number] | null = null;
+    let dirty = false;
+    let idle = 0;
+
+    const maps = () => document.querySelectorAll<HTMLElement>("[data-world-map]");
+
+    const clearPreview = () => {
+      maps().forEach((el) => {
+        el.style.transition = "none";
+        el.style.transform = "";
+        el.style.transformOrigin = "";
+      });
+    };
+
+    const commit = (sharp: boolean) => {
+      window.clearTimeout(idle);
+      idle = 0;
+      if (!dirty) {
+        if (sharp && gesturingRef.current) {
+          gesturingRef.current = false;
+          redrawRef.current();
+        }
+        return;
+      }
+      clearPreview();
+      gesturingRef.current = !sharp;
+      setViewFor(id, target);
+      painted = target;
+      dirty = false;
+      anchorGeo = null;
+      if (sharp) gesturingRef.current = false;
+    };
+
+    const previewScale = () => {
+      const scale = painted.lonSpan / target.lonSpan;
+      maps().forEach((el) => {
+        const mapId = el.dataset.worldMap as ProjectionId;
+        const w = el.clientWidth;
+        const h = el.clientHeight;
+        const pt = anchorGeo ? projectPoint(mapId, painted, anchorGeo, w, h) : null;
+        el.style.transition = "transform 60ms ease-out";
+        el.style.transformOrigin = pt ? `${pt[0]}px ${pt[1]}px` : "50% 50%";
+        el.style.transform = `scale(${scale})`;
+      });
+    };
+
+    const previewPan = () => {
+      let shift = 0;
+      maps().forEach((el) => {
+        const mapId = el.dataset.worldMap as ProjectionId;
+        const w = el.clientWidth;
+        const h = el.clientHeight;
+        const pt = projectPoint(mapId, painted, target.center, w, h);
+        const dx = pt ? w / 2 - pt[0] : 0;
+        const dy = pt ? h / 2 - pt[1] : 0;
+        if (mapId === id) shift = Math.hypot(dx, dy);
+        el.style.transition = "none";
+        el.style.transformOrigin = "0 0";
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+      return shift;
+    };
+
+    const armIdle = () => {
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => commit(true), 80);
+    };
+
+    zoomApi.current = {
+      zoomBy: (factor, x, y) => {
+        if (!dirty) painted = viewRef.current;
+        if (!anchorGeo) anchorGeo = invertPoint(id, painted, x, y, wrap.clientWidth, wrap.clientHeight);
+        target = zoomViewAbout(id, dirty ? target : painted, factor, { x, y }, wrap.clientWidth, wrap.clientHeight);
+        dirty = true;
+        previewScale();
+        const scale = painted.lonSpan / target.lonSpan;
+        if (scale < 0.62 || scale > 1.62) commit(false);
+        armIdle();
+      },
+      zoomFrom: (base, factor, x, y) => {
+        window.clearTimeout(idle);
+        if (!dirty) painted = base;
+        if (!anchorGeo) anchorGeo = invertPoint(id, base, x, y, wrap.clientWidth, wrap.clientHeight);
+        target = zoomViewAbout(id, base, factor, { x, y }, wrap.clientWidth, wrap.clientHeight);
+        dirty = true;
+        previewScale();
+        const scale = base.lonSpan / target.lonSpan;
+        if (scale < 0.58 || scale > 1.72) {
+          commit(false);
+          const pts = [...pointers.current.values()];
+          if (pts.length >= 2) {
+            pinchRef.current = {
+              dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+              view: viewRef.current,
+            };
+          }
+        }
+      },
+      setImmediate: (next) => {
+        window.clearTimeout(idle);
+        if (!dirty) painted = viewRef.current;
+        target = next;
+        dirty = true;
+        anchorGeo = null;
+        const shift = previewPan();
+        if (shift > 150) commit(false);
+      },
+      end: () => {
+        commit(true);
+      },
     };
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      pending *= wheelZoomFactor(e);
-      if (!raf) raf = requestAnimationFrame(flush);
+      const rect = wrap.getBoundingClientRect();
+      zoomApi.current.zoomBy(wheelZoomFactor(e), e.clientX - rect.left, e.clientY - rect.top);
     };
-    canvas.addEventListener("wheel", onWheel, { passive: false });
+
+    wrap.addEventListener("wheel", onWheel, { passive: false });
     return () => {
-      canvas.removeEventListener("wheel", onWheel);
-      if (raf) cancelAnimationFrame(raf);
+      wrap.removeEventListener("wheel", onWheel);
+      window.clearTimeout(idle);
+      clearPreview();
+      gesturingRef.current = false;
     };
   }, [id, setViewFor]);
 
@@ -269,12 +429,36 @@ export function ProjectionMap({ id, collection }: Props) {
 
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size >= 2) {
+      dragRef.current = null;
+      pinchedRef.current = true;
+      const pts = [...pointers.current.values()];
+      pinchRef.current = {
+        dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+        view: viewRef.current,
+      };
+      return;
+    }
+    pinchRef.current = null;
     dragRef.current = { x: e.clientX, y: e.clientY, view };
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (pointers.current.has(e.pointerId)) {
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
     const wrap = wrapRef.current;
-    if (wrap) {
+    if (pointers.current.size >= 2 && pinchRef.current && wrap) {
+      const pts = [...pointers.current.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      const rect = wrap.getBoundingClientRect();
+      const x = (pts[0].x + pts[1].x) / 2 - rect.left;
+      const y = (pts[0].y + pts[1].y) / 2 - rect.top;
+      zoomApi.current.zoomFrom(pinchRef.current.view, pinchRef.current.dist / dist, x, y);
+      return;
+    }
+    if (wrap && !dragRef.current) {
       setCursor(invertAt(id, view, wrap, e.clientX, e.clientY));
     }
     const drag = dragRef.current;
@@ -282,16 +466,26 @@ export function ProjectionMap({ id, collection }: Props) {
     const start = invertAt(id, drag.view, wrap, drag.x, drag.y);
     const now = invertAt(id, drag.view, wrap, e.clientX, e.clientY);
     if (!start || !now) return;
-    setViewFor(id, {
+    zoomApi.current.setImmediate({
       center: [drag.view.center[0] - (now[0] - start[0]), drag.view.center[1] - (now[1] - start[1])],
       lonSpan: drag.view.lonSpan,
     });
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size >= 1) {
+      pinchRef.current = null;
+      dragRef.current = null;
+      return;
+    }
+    pinchRef.current = null;
     const drag = dragRef.current;
     dragRef.current = null;
-    if (!drag) return;
+    const wasPinch = pinchedRef.current;
+    pinchedRef.current = false;
+    zoomApi.current.end();
+    if (wasPinch || !drag) return;
     const moved = Math.hypot(e.clientX - drag.x, e.clientY - drag.y);
     if (moved > 6) return;
     const feature = hitFeature(e.clientX, e.clientY);
@@ -312,7 +506,8 @@ export function ProjectionMap({ id, collection }: Props) {
   return (
     <div
       ref={wrapRef}
-      className="relative h-full min-h-[200px] w-full overflow-hidden bg-ocean"
+      data-world-map={id}
+      className="relative h-full min-h-[200px] w-full overflow-hidden overscroll-contain bg-ocean"
       onPointerLeave={() => setCursor(null)}
     >
       <canvas
@@ -321,8 +516,14 @@ export function ProjectionMap({ id, collection }: Props) {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={() => {
+        onPointerCancel={(e) => {
+          pointers.current.delete(e.pointerId);
           dragRef.current = null;
+          pinchRef.current = null;
+          if (pointers.current.size === 0) {
+            pinchedRef.current = false;
+            zoomApi.current.end();
+          }
         }}
         aria-label={`${PROJECTION_META[id].title} world map`}
       />

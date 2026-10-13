@@ -34,7 +34,7 @@ This app makes that trade-off visible instead of burying it in a code.
 | Drag the **Parallel** slider | Graticule spacing stretches on Mercator, stays honest on Equal Earth |
 | Switch **Independent** | Explore each projection on its own camera |
 
-Pan and scroll-zoom work on both canvases. **Synchronized** (default) keeps one geographic view.
+Scroll-zoom and a two-finger pinch keep the place under your pointer fixed, then sharpen when you stop. Drag to pan. **Synchronized** (default) keeps one geographic view on every map.
 
 ## What it demonstrates
 

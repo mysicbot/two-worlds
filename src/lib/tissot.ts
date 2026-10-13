@@ -19,3 +19,9 @@ const circle = geoCircle().radius(TISSOT_RADIUS_DEG).precision(8);
 export function tissotPolygon(center: [number, number]): GeoPermissibleObjects {
   return circle.center(center)();
 }
+
+const TISSOT_POLYGONS = tissotCenters().map((center) => tissotPolygon(center));
+
+export function tissotPolygons(): GeoPermissibleObjects[] {
+  return TISSOT_POLYGONS;
+}

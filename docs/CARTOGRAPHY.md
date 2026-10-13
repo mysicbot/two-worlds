@@ -129,9 +129,12 @@ type GeoView = {
 };
 ```
 
-Pan and wheel-zoom write a new `GeoView`. In **Synchronized** mode all maps
-read the same object; in **Independent** mode each map has its own. Scale is
-continuous: a world fit of the globe, then multiplied by `360 / lonSpan`.
+Pan, wheel-zoom, and a two-finger pinch write a new `GeoView`. The geographic
+point under the pointer stays put while the longitude span changes. The bitmap
+eases during the gesture and is reprojected when you pause, so five world maps
+can move without stepping. In **Synchronized** mode all maps read the same
+object; in **Independent** mode each map has its own. Scale is continuous: a
+world fit of the globe, then multiplied by `360 / lonSpan`.
 
 Explorer chips change the shared view (Africa, Greenland, Asia, …). Tapping a
 country does **not** change the view — it only picks the feature for the area

@@ -12,26 +12,36 @@ import {
   geoInterruptedHomolosine,
   geoWinkel3,
 } from "d3-geo-projection";
-import type { GeoView } from "./geo-view";
+import { clampView, wrapLonDelta, type GeoView } from "./geo-view";
 
 export type ProjectionId = "mercator" | "peters" | "equalEarth" | "homolosine" | "winkel";
 
 const EARTH_RADIUS_KM = 6371;
 const SPHERE = { type: "Sphere" } as GeoPermissibleObjects;
+const projectionIds = new WeakMap<GeoProjection, ProjectionId>();
+const fitCache = new Map<string, { scale: number; x: number; y: number }>();
 
 export function createProjection(id: ProjectionId): GeoProjection {
+  let projection: GeoProjection;
   switch (id) {
     case "mercator":
-      return geoMercator().precision(0.3);
+      projection = geoMercator().precision(0.3);
+      break;
     case "peters":
-      return geoCylindricalEqualArea().parallel(45).precision(0.3);
+      projection = geoCylindricalEqualArea().parallel(45).precision(0.3);
+      break;
     case "homolosine":
-      return geoInterruptedHomolosine().precision(0.3);
+      projection = geoInterruptedHomolosine().precision(0.3);
+      break;
     case "winkel":
-      return geoWinkel3().precision(0.3);
+      projection = geoWinkel3().precision(0.3);
+      break;
     case "equalEarth":
-      return geoEqualEarth().precision(0.3);
+      projection = geoEqualEarth().precision(0.3);
+      break;
   }
+  projectionIds.set(projection, id);
+  return projection;
 }
 
 export function applyView(
@@ -40,24 +50,94 @@ export function applyView(
   width: number,
   height: number,
 ): GeoProjection {
-  const pad = 12;
-  const right = Math.max(pad + 1, width - pad);
-  const bottom = Math.max(pad + 1, height - pad);
-  projection.fitExtent(
-    [
-      [pad, pad],
-      [right, bottom],
-    ],
-    SPHERE,
-  );
-  const worldScale = projection.scale();
-  projection.scale(worldScale * (360 / view.lonSpan));
+  const id = projectionIds.get(projection) ?? "mercator";
+  const key = `${id}:${Math.round(width)}x${Math.round(height)}`;
+  let fit = fitCache.get(key);
+  if (!fit) {
+    const pad = 12;
+    const right = Math.max(pad + 1, width - pad);
+    const bottom = Math.max(pad + 1, height - pad);
+    projection.fitExtent(
+      [
+        [pad, pad],
+        [right, bottom],
+      ],
+      SPHERE,
+    );
+    const [x, y] = projection.translate();
+    fit = { scale: projection.scale(), x, y };
+    fitCache.set(key, fit);
+  }
+  projection.scale(fit.scale);
+  projection.translate([fit.x, fit.y]);
+  projection.scale(fit.scale * (360 / view.lonSpan));
   const pt = projection(view.center);
   if (pt) {
     const [tx, ty] = projection.translate();
     projection.translate([tx + width / 2 - pt[0], ty + height / 2 - pt[1]]);
   }
   return projection;
+}
+
+function invertView(
+  id: ProjectionId,
+  view: GeoView,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): [number, number] | null {
+  const inv = applyView(createProjection(id), view, width, height).invert?.([x, y]);
+  if (!inv || !Number.isFinite(inv[0]) || !Number.isFinite(inv[1])) return null;
+  if (Math.abs(inv[1]) > 90) return null;
+  return [inv[0], inv[1]];
+}
+
+export function invertPoint(
+  id: ProjectionId,
+  view: GeoView,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): [number, number] | null {
+  return invertView(id, view, x, y, width, height);
+}
+
+export function projectPoint(
+  id: ProjectionId,
+  view: GeoView,
+  lonlat: [number, number],
+  width: number,
+  height: number,
+): [number, number] | null {
+  const pt = applyView(createProjection(id), view, width, height)(lonlat);
+  if (!pt || !Number.isFinite(pt[0]) || !Number.isFinite(pt[1])) return null;
+  return [pt[0], pt[1]];
+}
+
+/** Zoom `view` by `factor` (lonSpan multiplier) keeping the pixel `anchor` fixed. */
+export function zoomViewAbout(
+  id: ProjectionId,
+  view: GeoView,
+  factor: number,
+  anchor: { x: number; y: number } | null,
+  width: number,
+  height: number,
+): GeoView {
+  let next = clampView({ center: view.center, lonSpan: view.lonSpan * factor });
+  if (!anchor || width < 2 || height < 2) return next;
+  const geo = invertView(id, view, anchor.x, anchor.y, width, height);
+  if (!geo) return next;
+  for (let i = 0; i < 2; i += 1) {
+    const under = invertView(id, next, anchor.x, anchor.y, width, height);
+    if (!under) break;
+    next = clampView({
+      center: [next.center[0] + wrapLonDelta(geo[0] - under[0]), next.center[1] + (geo[1] - under[1])],
+      lonSpan: next.lonSpan,
+    });
+  }
+  return next;
 }
 
 export function sphericalAreaKm2(feature: GeoPermissibleObjects): number {
