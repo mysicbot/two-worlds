@@ -2,7 +2,7 @@
 
 **Open in a browser (no install):** [https://mysicbot.github.io/two-worlds/](https://mysicbot.github.io/two-worlds/)
 
-An educational WebGIS that places **Mercator**, **Gall–Peters**, **Equal Earth**, **Goode Homolosine**, and **Winkel Tripel** on the same page, locked to the same geography. Same countries. Same coordinates. Different mathematics.
+An educational WebGIS that keeps **three live maps** on stage and a **library of fifteen projections** behind them. Same countries. Same coordinates. Different mathematics. Adding another projection means adding a card, not another row on the page.
 
 The point is not to pick a winner. It is to feel how projection choice changes what a world map is allowed to say.
 
@@ -26,8 +26,10 @@ This app makes that trade-off visible instead of burying it in a code.
 
 | Do this | What you should notice |
 | --- | --- |
-| Leave Tissot on | Mercator circles stay round and swell toward the poles. Gall–Peters, Equal Earth, and Homolosine keep area — Peters stretches the tropics tall, Homolosine tears the oceans. Winkel Tripel changes both size and shape, gently |
-| Hover any map | A shared lon/lat crosshair appears on all five projections |
+| Leave Tissot on | Mercator circles stay round and swell toward the poles. Equal-area maps keep ellipse area. Winkel Tripel and Robinson change both size and shape |
+| Open a **lesson** | The three maps swap together: equal-area trio, parents of Goode, three azimuthals, the globe, the conics |
+| Open the **library** | Filter by what a projection keeps, its family, or its use. A card replaces the highlighted map |
+| Hover any map | A shared lon/lat crosshair appears on the three maps on stage |
 | Open **Greenland** or **Africa** | Same land, wildly different visual weight |
 | Open **Asia**, **India**, **China**, or **Japan** | Mid-latitude vs tropical scale on the conformal map |
 | Tap a country | Geographic area vs Mercator area-scale \(\sec^2\varphi\) at the centroid — the view does not jump |
@@ -43,17 +45,23 @@ Scroll-zoom and a two-finger pinch keep the place under your pointer fixed, then
 - **Equal-area cylindrical** Gall–Peters: true area, tropics stretched tall, poles as lines
 - **Equal-area** Equal Earth: country sizes comparable; shapes flex; the world stays one piece
 - **Equal-area interrupted** Goode Homolosine: same area rule, oceans split so continents keep more of their shape
-- **Compromise** Winkel Tripel: neither equal-area nor conformal; the map that “looks right”
-- Shared **crosshair**: one lon/lat marked on every projection, with Mercator area scale at that latitude
+- **Compromise** Winkel Tripel and Robinson: neither equal-area nor conformal
+- **Plate Carrée**: longitude and latitude as a grid — the stored coordinates
+- **Orthographic**: the planet from space, one hemisphere
+- **Azimuthals**: equidistant, stereographic (conformal), Lambert equal-area
+- **Conics**: Albers (equal-area, North America) and Lambert conformal conic
+- **Parents of Goode**: sinusoidal and Mollweide, beside the interrupted map
+- A **library** tagged by property, family, and use, so the catalog can pass a hundred projections without a longer page
+- Shared **crosshair** on the maps currently on stage, with Mercator area scale at that latitude
 - **Tissot’s indicatrix**: the same geodesic circle (~330 km / 3°) drawn in every projection
 - Distortion Explorer for Africa, Canada, Greenland, Europe, Asia, India, China, Japan, United States, Australia, South America, Antarctica
-- Synchronized navigation so the same extent is read in two languages at once
+- Synchronized navigation so the three maps on stage share one geographic view
 
 ## Stack
 
 - React 19 and TanStack Start
-- [d3-geo](https://github.com/d3/d3-geo) — `geoMercator`, `geoEqualEarth`, `geoCircle`
-- [d3-geo-projection](https://github.com/d3/d3-geo-projection) — `geoCylindricalEqualArea` (Gall–Peters, parallel 45°), `geoInterruptedHomolosine`, `geoWinkel3`
+- [d3-geo](https://github.com/d3/d3-geo) — Mercator, Equal Earth, Plate Carrée, orthographic, azimuthals, Albers, Lambert conformal conic
+- [d3-geo-projection](https://github.com/d3/d3-geo-projection) — Gall–Peters, Goode Homolosine, Winkel Tripel, Robinson, Mollweide, sinusoidal
 - Natural Earth 1:110m admin-0 countries (GeoJSON)
 - Canvas rendering — no map-tile vendor, no backend GIS
 
@@ -71,7 +79,8 @@ Then open the URL Vite prints. Typecheck with `npm run typecheck`.
 ## Repository
 
 ```
-src/lib/projections.ts   Five projections, view fitting, spherical area
+src/lib/catalog.ts       Names, tags, and the six lessons
+src/lib/projections.ts   Fifteen projections, view fitting, spherical area
 src/lib/tissot.ts        Geodesic circles for the indicatrix
 src/lib/geo-view.ts      Shared camera: centre + longitude span
 src/lib/regions.ts       Distortion Explorer

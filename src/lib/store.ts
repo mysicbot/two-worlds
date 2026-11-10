@@ -1,6 +1,6 @@
 import { create } from "zustand";
+import { DEFAULT_SLOTS, type ProjectionId } from "./catalog";
 import { clampView, WORLD_VIEW, type GeoView, type LonLat } from "./geo-view";
-import type { ProjectionId } from "./projections";
 import type { RegionId } from "./regions";
 
 export type SyncMode = "sync" | "independent";
@@ -13,14 +13,14 @@ export type CountryPick = {
   centroidLat: number;
 };
 
+type Slots = [ProjectionId, ProjectionId, ProjectionId];
+
 type AppState = {
   syncMode: SyncMode;
   view: GeoView;
-  mercatorView: GeoView;
-  equalView: GeoView;
-  homolosineView: GeoView;
-  winkelView: GeoView;
-  petersView: GeoView;
+  views: Partial<Record<ProjectionId, GeoView>>;
+  slots: Slots;
+  activeSlot: 0 | 1 | 2;
   cursor: LonLat | null;
   selectedRegion: RegionId | null;
   highlightedNames: string[];
@@ -33,6 +33,9 @@ type AppState = {
   setSyncMode: (mode: SyncMode) => void;
   setViewFor: (which: ProjectionId, view: GeoView) => void;
   setCursor: (cursor: LonLat | null) => void;
+  setActiveSlot: (slot: 0 | 1 | 2) => void;
+  setSlot: (slot: 0 | 1 | 2, id: ProjectionId) => void;
+  applyLesson: (slots: Slots) => void;
   focusRegion: (
     id: RegionId,
     names: string[],
@@ -47,33 +50,16 @@ type AppState = {
   resetWorld: () => void;
 };
 
-function allViews(view: GeoView) {
-  return {
-    view,
-    mercatorView: view,
-    equalView: view,
-    homolosineView: view,
-    winkelView: view,
-    petersView: view,
-  };
+function sharedView(view: GeoView) {
+  return { view, views: {} as AppState["views"] };
 }
-
-const VIEW_KEY = {
-  mercator: "mercatorView",
-  equalEarth: "equalView",
-  homolosine: "homolosineView",
-  winkel: "winkelView",
-  peters: "petersView",
-} as const satisfies Record<ProjectionId, keyof ReturnType<typeof allViews>>;
 
 export const useAppStore = create<AppState>((set) => ({
   syncMode: "sync",
   view: WORLD_VIEW,
-  mercatorView: WORLD_VIEW,
-  equalView: WORLD_VIEW,
-  homolosineView: WORLD_VIEW,
-  winkelView: WORLD_VIEW,
-  petersView: WORLD_VIEW,
+  views: {},
+  slots: DEFAULT_SLOTS,
+  activeSlot: 2,
   cursor: null,
   selectedRegion: null,
   highlightedNames: [],
@@ -87,10 +73,21 @@ export const useAppStore = create<AppState>((set) => ({
   setViewFor: (which, next) =>
     set((s) => {
       const view = clampView(next);
-      if (s.syncMode === "sync") return allViews(view);
-      return { [VIEW_KEY[which]]: view };
+      if (s.syncMode === "sync") return sharedView(view);
+      return { views: { ...s.views, [which]: view } };
     }),
   setCursor: (cursor) => set({ cursor }),
+  setActiveSlot: (activeSlot) => set({ activeSlot }),
+  setSlot: (slot, id) =>
+    set((s) => {
+      const slots: Slots = [s.slots[0], s.slots[1], s.slots[2]];
+      const existing = slots.indexOf(id);
+      if (existing === slot) return { activeSlot: slot };
+      if (existing >= 0) slots[existing] = slots[slot];
+      slots[slot] = id;
+      return { slots, activeSlot: slot };
+    }),
+  applyLesson: (slots) => set({ slots: [slots[0], slots[1], slots[2]], activeSlot: 2 }),
   focusRegion: (id, names, continents, excludeNames, view) =>
     set({
       selectedRegion: id,
@@ -98,7 +95,7 @@ export const useAppStore = create<AppState>((set) => ({
       highlightedContinents: continents ?? [],
       excludedNames: excludeNames ?? [],
       picked: null,
-      ...allViews(clampView(view)),
+      ...sharedView(clampView(view)),
     }),
   pickCountry: (picked) => set({ picked }),
   toggleGraticule: () => set((s) => ({ showGraticule: !s.showGraticule })),
@@ -111,11 +108,11 @@ export const useAppStore = create<AppState>((set) => ({
       highlightedContinents: [],
       excludedNames: [],
       picked: null,
-      ...allViews(WORLD_VIEW),
+      ...sharedView(WORLD_VIEW),
     }),
 }));
 
 export function viewFor(s: AppState, id: ProjectionId): GeoView {
   if (s.syncMode === "sync") return s.view;
-  return s[VIEW_KEY[id]];
+  return s.views[id] ?? s.view;
 }

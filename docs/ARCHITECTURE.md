@@ -15,13 +15,15 @@ computed in the browser with [d3-geo](https://github.com/d3/d3-geo).
 
 | Path | Role |
 | --- | --- |
-| `src/lib/projections.ts` | Mercator, Gall–Peters, Equal Earth, Homolosine, Winkel Tripel; view fitting; spherical area |
+| `src/lib/catalog.ts` | Projection tags, lessons, and the library order |
+| `src/lib/projections.ts` | Fifteen projections, view fitting, spherical area |
 | `src/lib/tissot.ts` | Lattice of geodesic circles (`geoCircle`, 3° radius) |
 | `src/lib/geo-view.ts` | Shared geographic camera: centre + longitude span |
 | `src/lib/geojson.ts` | Load + match Natural Earth features |
 | `src/lib/regions.ts` | Distortion Explorer chips (Africa … Japan, Antarctica) |
-| `src/lib/store.ts` | Sync mode, highlights, picked country, Tissot/graticule flags |
+| `src/lib/store.ts` | Three stage slots, sync mode, highlights, Tissot/graticule |
 | `src/components/ProjectionMap.tsx` | Hit-testing, pan/zoom, land, graticule, Tissot |
+| `src/components/ProjectionLibrary.tsx` | Lesson chips, search, filters, still-picture cards |
 | `src/components/DistortionExplorer.tsx` | Region chips + area-scale cards |
 | `src/components/AreaCompare.tsx` | Country pick: geographic area vs sec²(φ) |
 | `src/components/Education.tsx` | Short cartographic briefing in the page |

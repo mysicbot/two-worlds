@@ -11,18 +11,31 @@ preserve area, local shape, distance, and direction everywhere at once
 (Gauss’s *Theorema Egregium*). Every world map therefore states a preference.
 
 This app holds **one geographic view** — a centre (λ, φ) and a longitude span —
-and draws it five times:
+and draws it in **three live maps**. A library of fifteen projections sits
+under them. Choosing a card replaces the highlighted map. It does not add a
+fourth canvas, so the page can grow past a hundred projections without becoming
+a scroll of worlds.
 
-| Map | Constructor | Property protected |
+| On the default stage | Constructor | Property protected |
 | --- | --- | --- |
 | Mercator | `geoMercator` | Local angles (conformal) |
-| Gall–Peters | `geoCylindricalEqualArea().parallel(45)` | Area, cylindrical |
 | Equal Earth | `geoEqualEarth` | Area, continuous world |
-| Goode Homolosine | `geoInterruptedHomolosine` | Area, continents; oceans interrupted |
 | Winkel Tripel | `geoWinkel3` | Neither — a visual compromise |
 
-The countries are the same Natural Earth 1:110m features. The difference you
-see is the projection, not the data.
+The other twelve are one click away: Gall–Peters, Goode Homolosine, Robinson,
+Plate Carrée, Mollweide, sinusoidal, orthographic, azimuthal equidistant,
+stereographic, Lambert azimuthal equal-area, Albers, and Lambert conformal
+conic. Each is tagged by what it keeps (angles, area, distance, compromise),
+its family, and what it is for. Lessons are curated triples — for example the
+two parents of Goode beside the interrupted map.
+
+Conics and the globe view cannot honestly show the whole sphere. Lambert
+conformal conic is fitted to a spherical cap (centre 22°N, radius 78°), with
+standard parallels 30° and 60°. Albers uses the USGS parallels 29.5° and 45.5°,
+with the central meridian at 10°E so the shared camera still falls on the map.
+Stereographic and orthographic each show one hemisphere. The countries are the
+same Natural Earth 1:110m features. The difference you see is the projection,
+not the data.
 
 ## Mercator
 
@@ -131,10 +144,11 @@ type GeoView = {
 
 Pan, wheel-zoom, and a two-finger pinch write a new `GeoView`. The geographic
 point under the pointer stays put while the longitude span changes. The bitmap
-eases during the gesture and is reprojected when you pause, so five world maps
-can move without stepping. In **Synchronized** mode all maps read the same
-object; in **Independent** mode each map has its own. Scale is continuous: a
-world fit of the globe, then multiplied by `360 / lonSpan`.
+eases during the gesture and is reprojected when you pause. Only the three maps
+on stage take part, so a large library does not make zoom heavier. In
+**Synchronized** mode those maps read the same object; in **Independent** mode
+each projection has its own. Scale is continuous: a world fit of the globe,
+then multiplied by `360 / lonSpan`.
 
 Explorer chips change the shared view (Africa, Greenland, Asia, …). Tapping a
 country does **not** change the view — it only picks the feature for the area

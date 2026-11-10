@@ -1,45 +1,93 @@
 import {
   geoArea,
+  geoAzimuthalEqualArea,
+  geoAzimuthalEquidistant,
   geoCentroid,
+  geoCircle,
+  geoConicConformal,
+  geoConicEqualArea,
   geoEqualEarth,
+  geoEquirectangular,
   geoGraticule,
   geoMercator,
+  geoOrthographic,
+  geoStereographic,
   type GeoPermissibleObjects,
   type GeoProjection,
 } from "d3-geo";
 import {
   geoCylindricalEqualArea,
   geoInterruptedHomolosine,
+  geoMollweide,
+  geoRobinson,
+  geoSinusoidal,
   geoWinkel3,
 } from "d3-geo-projection";
+import type { ProjectionId } from "./catalog";
 import { clampView, wrapLonDelta, type GeoView } from "./geo-view";
 
-export type ProjectionId = "mercator" | "peters" | "equalEarth" | "homolosine" | "winkel";
+export type { ProjectionId } from "./catalog";
+export { PROJECTION_META } from "./catalog";
 
 const EARTH_RADIUS_KM = 6371;
 const SPHERE = { type: "Sphere" } as GeoPermissibleObjects;
 const projectionIds = new WeakMap<GeoProjection, ProjectionId>();
+const fitSubjects = new WeakMap<GeoProjection, GeoPermissibleObjects>();
 const fitCache = new Map<string, { scale: number; x: number; y: number }>();
+
+const CONIC_CAP = geoCircle().center([0, 22]).radius(78).precision(2)();
 
 export function createProjection(id: ProjectionId): GeoProjection {
   let projection: GeoProjection;
   switch (id) {
     case "mercator":
-      projection = geoMercator().precision(0.3);
+      projection = geoMercator();
       break;
     case "peters":
-      projection = geoCylindricalEqualArea().parallel(45).precision(0.3);
+      projection = geoCylindricalEqualArea().parallel(45);
       break;
     case "homolosine":
-      projection = geoInterruptedHomolosine().precision(0.3);
+      projection = geoInterruptedHomolosine();
       break;
     case "winkel":
-      projection = geoWinkel3().precision(0.3);
+      projection = geoWinkel3();
       break;
     case "equalEarth":
-      projection = geoEqualEarth().precision(0.3);
+      projection = geoEqualEarth();
+      break;
+    case "plateCarree":
+      projection = geoEquirectangular();
+      break;
+    case "orthographic":
+      projection = geoOrthographic();
+      break;
+    case "azimuthalEquidistant":
+      projection = geoAzimuthalEquidistant();
+      break;
+    case "stereographic":
+      projection = geoStereographic().clipAngle(90);
+      break;
+    case "lambertAzimuthal":
+      projection = geoAzimuthalEqualArea();
+      break;
+    case "albers":
+      projection = geoConicEqualArea().parallels([29.5, 45.5]).rotate([-10, 0]);
+      break;
+    case "lambertConic":
+      projection = geoConicConformal().parallels([30, 60]);
+      fitSubjects.set(projection, CONIC_CAP);
+      break;
+    case "mollweide":
+      projection = geoMollweide();
+      break;
+    case "sinusoidal":
+      projection = geoSinusoidal();
+      break;
+    case "robinson":
+      projection = geoRobinson();
       break;
   }
+  projection.precision(0.3);
   projectionIds.set(projection, id);
   return projection;
 }
@@ -51,7 +99,7 @@ export function applyView(
   height: number,
 ): GeoProjection {
   const id = projectionIds.get(projection) ?? "mercator";
-  const key = `${id}:${Math.round(width)}x${Math.round(height)}`;
+  const key = `${id}:${Math.round(width)}x${Math.round(height)}:v2`;
   let fit = fitCache.get(key);
   if (!fit) {
     const pad = 12;
@@ -62,7 +110,7 @@ export function applyView(
         [pad, pad],
         [right, bottom],
       ],
-      SPHERE,
+      fitSubjects.get(projection) ?? SPHERE,
     );
     const [x, y] = projection.translate();
     fit = { scale: projection.scale(), x, y };
@@ -164,44 +212,3 @@ export function makeParallels(latitudes: number[]) {
     ),
   };
 }
-
-export const PROJECTION_META: Record<
-  ProjectionId,
-  { title: string; subtitle: string; year: string; authors: string; tone: string }
-> = {
-  mercator: {
-    title: "Mercator",
-    subtitle: "Conformal · navigation",
-    year: "1569",
-    authors: "Gerardus Mercator",
-    tone: "text-mercator",
-  },
-  peters: {
-    title: "Gall–Peters",
-    subtitle: "Equal-area · cylindrical",
-    year: "1855",
-    authors: "James Gall · Arno Peters",
-    tone: "text-peters",
-  },
-  equalEarth: {
-    title: "Equal Earth",
-    subtitle: "Equal-area · continuous",
-    year: "2018",
-    authors: "Šavrič, Patterson & Jenny",
-    tone: "text-equal",
-  },
-  homolosine: {
-    title: "Goode Homolosine",
-    subtitle: "Equal-area · interrupted",
-    year: "1923",
-    authors: "John Paul Goode",
-    tone: "text-highlight",
-  },
-  winkel: {
-    title: "Winkel Tripel",
-    subtitle: "Compromise · continuous",
-    year: "1921",
-    authors: "Oswald Winkel",
-    tone: "text-winkel",
-  },
-};

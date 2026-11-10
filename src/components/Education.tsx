@@ -6,7 +6,8 @@ export function Education() {
       <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
         The Earth is a curved surface. A map is a plane. No projection can keep area, shape, distance,
         and direction all correct at once. Choosing a projection is choosing which property to protect
-        — and which distortion to accept.
+        — and which distortion to accept. The stage above holds three maps. The library is where the
+        rest live, tagged by what they keep, which family they belong to, and what they are for.
       </p>
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article className="rounded-md border border-border bg-elevated p-4">

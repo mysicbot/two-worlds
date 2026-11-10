@@ -5,13 +5,19 @@ import { Controls } from "@/components/Controls";
 import { DistortionExplorer } from "@/components/DistortionExplorer";
 import { Education } from "@/components/Education";
 import { MapPane } from "@/components/MapPane";
+import { LessonBar, ProjectionLibrary } from "@/components/ProjectionLibrary";
+import { CATALOG } from "@/lib/catalog";
 import { loadCountries, type CountryCollection } from "@/lib/geojson";
+import { useAppStore } from "@/lib/store";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const [collection, setCollection] = useState<CountryCollection | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const slots = useAppStore((s) => s.slots);
+  const activeSlot = useAppStore((s) => s.activeSlot);
+  const setActiveSlot = useAppStore((s) => s.setActiveSlot);
 
   useEffect(() => {
     loadCountries()
@@ -33,16 +39,17 @@ function Home() {
               Exploring Map Projections
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-              Mercator, Gall–Peters, Equal Earth, Homolosine, and Winkel Tripel. Same countries.
-              Same coordinates. Different mathematics.
+              Three maps at a time, chosen from a library of {CATALOG.length}. Same countries. Same
+              coordinates. Different mathematics.
             </p>
           </div>
           <p className="max-w-xs text-xs leading-relaxed text-subtle sm:text-right">
-            Natural Earth 1:110m countries · WGS84 geodesy · five projections
+            Natural Earth 1:110m countries · WGS84 · {CATALOG.length} projections, three on stage
           </p>
         </header>
 
         <Controls />
+        <LessonBar />
 
         {error ? (
           <p className="rounded-md border border-border bg-surface px-4 py-3 text-sm text-muted">
@@ -50,33 +57,30 @@ function Home() {
           </p>
         ) : null}
 
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          <div className="min-h-[240px] sm:min-h-[280px]">
-            <MapPane id="mercator" collection={collection} />
-          </div>
-          <div className="min-h-[240px] sm:min-h-[280px]">
-            <MapPane id="peters" collection={collection} />
-          </div>
-          <div className="min-h-[240px] sm:min-h-[280px]">
-            <MapPane id="equalEarth" collection={collection} />
-          </div>
-          <div className="min-h-[240px] sm:min-h-[280px]">
-            <MapPane id="homolosine" collection={collection} />
-          </div>
-          <div className="min-h-[240px] sm:min-h-[280px] lg:col-span-2 lg:min-h-[300px]">
-            <MapPane id="winkel" collection={collection} />
-          </div>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          {slots.map((id, index) => (
+            <div key={id} className="min-h-[260px] sm:min-h-[300px]">
+              <MapPane
+                id={id}
+                collection={collection}
+                active={activeSlot === index}
+                onActivate={() => setActiveSlot(index as 0 | 1 | 2)}
+              />
+            </div>
+          ))}
         </div>
+
+        <ProjectionLibrary collection={collection} />
 
         <DistortionExplorer />
         <AreaCompare />
         <Education />
 
         <footer className="border-t border-border pt-4 pb-8 text-xs leading-relaxed text-subtle">
-          Open geographic data from Natural Earth. Projections from d3-geo (Mercator, Equal Earth)
-          and d3-geo-projection (Gall–Peters, Goode Homolosine, Winkel Tripel). Indicatrices are
-          geodesic circles of 3° radius (~330 km). Areas are spherical estimates from the simplified
-          1:110m geometries — good for comparison, not cadastral measurement.
+          Open geographic data from Natural Earth. The stage draws three projections; the library holds{" "}
+          {CATALOG.length}, ready for more. Indicatrices are geodesic circles of 3° radius (~330 km).
+          Areas are spherical estimates from the simplified 1:110m geometries — good for comparison,
+          not cadastral measurement.
         </footer>
       </div>
     </main>
