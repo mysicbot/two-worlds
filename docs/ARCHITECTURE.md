@@ -16,7 +16,7 @@ computed in the browser with [d3-geo](https://github.com/d3/d3-geo).
 | Path | Role |
 | --- | --- |
 | `src/lib/catalog.ts` | Projection tags, lessons, and the library order |
-| `src/lib/projections.ts` | Fifteen projections, view fitting, spherical area |
+| `src/lib/projections.ts` | Fifty projections, view fitting, spherical area |
 | `src/lib/tissot.ts` | Lattice of geodesic circles (`geoCircle`, 3° radius) |
 | `src/lib/geo-view.ts` | Shared geographic camera: centre + longitude span |
 | `src/lib/geojson.ts` | Load + match Natural Earth features |

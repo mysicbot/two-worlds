@@ -11,7 +11,7 @@ preserve area, local shape, distance, and direction everywhere at once
 (Gauss’s *Theorema Egregium*). Every world map therefore states a preference.
 
 This app holds **one geographic view** — a centre (λ, φ) and a longitude span —
-and draws it in **three live maps**. A library of fifteen projections sits
+and draws it in **three live maps**. A library of fifty projections sits
 under them. Choosing a card replaces the highlighted map. It does not add a
 fourth canvas, so the page can grow past a hundred projections without becoming
 a scroll of worlds.
@@ -22,12 +22,14 @@ a scroll of worlds.
 | Equal Earth | `geoEqualEarth` | Area, continuous world |
 | Winkel Tripel | `geoWinkel3` | Neither — a visual compromise |
 
-The other twelve are one click away: Gall–Peters, Goode Homolosine, Robinson,
-Plate Carrée, Mollweide, sinusoidal, orthographic, azimuthal equidistant,
-stereographic, Lambert azimuthal equal-area, Albers, and Lambert conformal
-conic. Each is tagged by what it keeps (angles, area, distance, compromise),
-its family, and what it is for. Lessons are curated triples — for example the
-two parents of Goode beside the interrupted map.
+The other projections are one click away, tagged by what they keep (angles,
+area, distance, compromise), their family, and what they are for. The fifty
+include the cylinders people confuse with Mercator (Miller, Gall stereographic,
+Behrmann, Lambert cylindrical, Patterson), the atlas compromises (Natural Earth,
+Robinson, Kavrayskiy VII, Van der Grinten), equal-area pseudocylindricals
+(Eckert, Wagner, Hammer, Mollweide and its parents), interrupted oceans, the
+gnomonic, transverse Mercator, and Peirce’s conformal square. Lessons are
+curated triples.
 
 Conics and the globe view cannot honestly show the whole sphere. Lambert
 conformal conic is fitted to a spherical cap (centre 22°N, radius 78°), with

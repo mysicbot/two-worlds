@@ -143,7 +143,7 @@ export function ProjectionLibrary({ collection }: Props) {
                   <ProjectionThumb id={id} collection={collection} />
                   <span className="min-w-0">
                     <span className={`block font-mono text-[10px] tracking-[0.14em] uppercase ${meta.tone}`}>
-                      {keepsLabel(meta.keeps)}
+                      {meta.badge ?? keepsLabel(meta.keeps)}
                     </span>
                     <span className="mt-0.5 block text-sm text-fg">{meta.title}</span>
                     <span className="mt-0.5 block text-[11px] leading-snug text-subtle">{meta.summary}</span>

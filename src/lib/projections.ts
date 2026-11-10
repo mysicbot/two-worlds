@@ -8,19 +8,52 @@ import {
   geoConicEqualArea,
   geoEqualEarth,
   geoEquirectangular,
+  geoGnomonic,
   geoGraticule,
   geoMercator,
+  geoNaturalEarth1,
   geoOrthographic,
   geoStereographic,
+  geoTransverseMercator,
+  geoConicEquidistant,
   type GeoPermissibleObjects,
   type GeoProjection,
 } from "d3-geo";
 import {
+  geoAitoff,
+  geoBoggs,
+  geoBonne,
+  geoCollignon,
+  geoCraster,
   geoCylindricalEqualArea,
+  geoCylindricalStereographic,
+  geoEckert4,
+  geoEckert6,
+  geoFahey,
+  geoHammer,
+  geoHealpix,
+  geoHomolosine,
+  geoInterruptedBoggs,
   geoInterruptedHomolosine,
+  geoInterruptedMollweide,
+  geoInterruptedSinusoidal,
+  geoKavrayskiy7,
+  geoLaskowski,
+  geoLoximuthal,
+  geoMiller,
   geoMollweide,
+  geoMtFlatPolarQuartic,
+  geoNaturalEarth2,
+  geoPatterson,
+  geoPeirceQuincuncial,
+  geoPolyconic,
   geoRobinson,
   geoSinusoidal,
+  geoTimes,
+  geoVanDerGrinten,
+  geoWagner4,
+  geoWagner6,
+  geoWagner7,
   geoWinkel3,
 } from "d3-geo-projection";
 import type { ProjectionId } from "./catalog";
@@ -85,6 +118,111 @@ export function createProjection(id: ProjectionId): GeoProjection {
       break;
     case "robinson":
       projection = geoRobinson();
+      break;
+    case "miller":
+      projection = geoMiller();
+      break;
+    case "gallStereo":
+      projection = geoCylindricalStereographic().parallel(45);
+      break;
+    case "behrmann":
+      projection = geoCylindricalEqualArea().parallel(30);
+      break;
+    case "lambertCylindrical":
+      projection = geoCylindricalEqualArea().parallel(0);
+      break;
+    case "patterson":
+      projection = geoPatterson();
+      break;
+    case "naturalEarth":
+      projection = geoNaturalEarth1();
+      break;
+    case "naturalEarth2":
+      projection = geoNaturalEarth2();
+      break;
+    case "kavrayskiy7":
+      projection = geoKavrayskiy7();
+      break;
+    case "eckert4":
+      projection = geoEckert4();
+      break;
+    case "eckert6":
+      projection = geoEckert6();
+      break;
+    case "wagner4":
+      projection = geoWagner4();
+      break;
+    case "wagner6":
+      projection = geoWagner6();
+      break;
+    case "wagner7":
+      projection = geoWagner7();
+      break;
+    case "hammer":
+      projection = geoHammer();
+      break;
+    case "aitoff":
+      projection = geoAitoff();
+      break;
+    case "times":
+      projection = geoTimes();
+      break;
+    case "fahey":
+      projection = geoFahey();
+      break;
+    case "craster":
+      projection = geoCraster();
+      break;
+    case "boggs":
+      projection = geoBoggs();
+      break;
+    case "mcbrydeThomas":
+      projection = geoMtFlatPolarQuartic();
+      break;
+    case "collignon":
+      projection = geoCollignon();
+      break;
+    case "healpix":
+      projection = geoHealpix();
+      break;
+    case "homolosineContinuous":
+      projection = geoHomolosine();
+      break;
+    case "laskowski":
+      projection = geoLaskowski();
+      break;
+    case "loximuthal":
+      projection = geoLoximuthal();
+      break;
+    case "interruptedMollweide":
+      projection = geoInterruptedMollweide();
+      break;
+    case "interruptedSinusoidal":
+      projection = geoInterruptedSinusoidal();
+      break;
+    case "interruptedBoggs":
+      projection = geoInterruptedBoggs();
+      break;
+    case "vanDerGrinten":
+      projection = geoVanDerGrinten();
+      break;
+    case "bonne":
+      projection = geoBonne();
+      break;
+    case "polyconic":
+      projection = geoPolyconic();
+      break;
+    case "conicEquidistant":
+      projection = geoConicEquidistant().parallels([20, 60]);
+      break;
+    case "gnomonic":
+      projection = geoGnomonic();
+      break;
+    case "transverseMercator":
+      projection = geoTransverseMercator();
+      break;
+    case "peirce":
+      projection = geoPeirceQuincuncial();
       break;
   }
   projection.precision(0.3);
