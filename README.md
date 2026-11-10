@@ -6,6 +6,8 @@ An educational WebGIS that keeps **three live maps** on stage and a **library of
 
 The point is not to pick a winner. It is to feel how projection choice changes what a world map is allowed to say.
 
+A second page, [the theory](https://mysicbot.github.io/two-worlds/learn), walks the setup in plain language: the shape of the Earth, latitude and longitude, why a coordinate is not a picture, and why every flat map has to lie. The maps are the lab. That page is the briefing.
+
 ![Mercator (top) and Equal Earth (bottom) with Tissot’s indicatrix](docs/images/world.png)
 
 <p align="center"><em>Tissot’s indicatrix on both maps — circles that grow with latitude on Mercator, ellipses of constant area on Equal Earth.</em></p>

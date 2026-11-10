@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AreaCompare } from "@/components/AreaCompare";
 import { Controls } from "@/components/Controls";
@@ -40,7 +40,11 @@ function Home() {
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
               Three maps at a time, chosen from a library of {CATALOG.length}. Same countries. Same
-              coordinates. Different mathematics.
+              coordinates. Different mathematics.{" "}
+              <Link to="/learn" className="text-accent underline-offset-4 hover:underline">
+                Read the theory first
+              </Link>
+              .
             </p>
           </div>
           <p className="max-w-xs text-xs leading-relaxed text-subtle sm:text-right">

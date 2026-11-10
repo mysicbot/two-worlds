@@ -14,7 +14,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Five world projections of the same countries: Mercator, Gall–Peters, Equal Earth, Homolosine, and Winkel Tripel.",
+          "World map projections, side by side, plus a plain-language guide to the shape of the Earth, latitude and longitude, and why every flat map has to lie.",
       },
       { name: "theme-color", content: "#0b100e" },
     ],

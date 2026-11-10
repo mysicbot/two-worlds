@@ -26,7 +26,9 @@ computed in the browser with [d3-geo](https://github.com/d3/d3-geo).
 | `src/components/ProjectionLibrary.tsx` | Lesson chips, search, filters, still-picture cards |
 | `src/components/DistortionExplorer.tsx` | Region chips + area-scale cards |
 | `src/components/AreaCompare.tsx` | Country pick: geographic area vs sec²(φ) |
-| `src/components/Education.tsx` | Short cartographic briefing in the page |
+| `src/components/Education.tsx` | Short cartographic briefing under the maps |
+| `src/routes/learn.tsx` | Theory: shape of the Earth, the grid, why a flat map lies |
+| `src/components/learn/` | The interactive figures on that page |
 
 ## Rendering
 
