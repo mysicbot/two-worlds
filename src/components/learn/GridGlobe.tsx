@@ -14,37 +14,37 @@ const CITIES: City[] = [
     name: "Toronto",
     lat: 43.7,
     lon: -79.4,
-    line: "About halfway from the equator toward the north pole, and well west of the line through Greenwich.",
+    line: "About halfway from the equator to the north pole. And west of the line through London.",
   },
   {
     name: "Greenwich",
     lat: 51.5,
     lon: 0,
-    line: "Longitude zero runs through here because a meeting in 1884 agreed it would. The planet has no seam.",
+    line: "This is the zero line. People voted for it in 1884. The Earth has no seam here.",
   },
   {
     name: "Quito",
     lat: -0.2,
     lon: -78.5,
-    line: "Almost on the equator. Latitude near zero means the noon sun can stand overhead.",
+    line: "Almost on the equator. Latitude near zero.",
   },
   {
     name: "Nairobi",
     lat: -1.3,
     lon: 36.8,
-    line: "The same belt as Quito, on the other side of the zero line. East is just a direction we named.",
+    line: "The same belt as Quito, on the east side of the zero line.",
   },
   {
     name: "Sydney",
     lat: -33.9,
     lon: 151.2,
-    line: "South of the equator, and so far east you are nearer the date line than Greenwich.",
+    line: "South of the equator, and far to the east.",
   },
   {
     name: "Reykjavík",
     lat: 64.1,
     lon: -21.9,
-    line: "Far north. The east–west lines are short circles up here. A step of one degree is a smaller walk.",
+    line: "Far north. A step east or west is a much shorter walk up here.",
   },
 ];
 
@@ -208,7 +208,7 @@ export function GridGlobe({ collection }: Props) {
     <figure className="rounded-lg border border-border bg-elevated p-4 sm:p-5">
       <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="font-mono text-[11px] tracking-[0.16em] text-accent uppercase">Turn the globe</p>
-        <p className="text-[11px] text-subtle">Sage line: equator. Gold line: the zero of longitude.</p>
+        <p className="text-[11px] text-subtle">Sage line: the equator. Gold line: longitude zero.</p>
       </figcaption>
       <div
         ref={wrapRef}
@@ -257,7 +257,7 @@ export function GridGlobe({ collection }: Props) {
         <span className="text-subtle">
           {" "}
           · one degree east or west here is about {kmPerDegree(city.lat)} km
-          {Math.abs(city.lat) > 50 ? " — shorter than the 111 km it is on the equator" : ""}
+          {Math.abs(city.lat) > 50 ? ". On the equator that same degree is 111 km." : ""}
         </span>
       </p>
     </figure>

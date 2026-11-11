@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { motionOk, useOnScreen } from "./hooks";
 
 const A_KM = 6378;
 const B_KM = 6357;
@@ -23,7 +24,9 @@ function ring(
 }
 
 export function ShapeLab() {
+  const [ref, visible] = useOnScreen<HTMLElement>();
   const [stretch, setStretch] = useState(1);
+  const [play, setPlay] = useState(false);
   const f = (1 / 298.257) * stretch;
   const rx = 86;
   const ry = 86 * (1 - f);
@@ -32,16 +35,34 @@ export function ShapeLab() {
   const cx = 160;
   const cy = 118;
 
+  useEffect(() => {
+    if (!play || !visible || !motionOk()) return;
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const u = ((now - t0) / 5600) % 1;
+      const tri = u < 0.5 ? u * 2 : (1 - u) * 2;
+      setStretch(1 + Math.round(tri * 22));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [play, visible]);
+
   return (
-    <figure className="rounded-lg border border-border bg-elevated p-4 sm:p-5">
+    <figure ref={ref} className="rounded-lg border border-border bg-elevated p-4 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <figcaption>
-          <p className="font-mono text-[11px] tracking-[0.16em] text-accent uppercase">Look closer</p>
-          <p className="mt-1 text-sm text-fg">Stretch the difference. The planet does not change. Your eye does.</p>
+          <p className="font-mono text-[11px] tracking-[0.16em] text-accent uppercase">Three different skins</p>
+          <p className="mt-1 text-sm text-fg">Pull them apart. The real planet is not this lumpy. We stretch it so you can tell the skins apart.</p>
         </figcaption>
-        <p className="font-mono text-xs text-muted tabular-nums">
-          {stretch === 1 ? "true shape" : `${stretch}× the real flattening`}
-        </p>
+        <button
+          type="button"
+          onClick={() => setPlay((v) => !v)}
+          className="min-h-9 rounded-sm border border-border px-3 text-xs text-fg"
+        >
+          {play ? "Pause" : "Play"}
+        </button>
       </div>
       <svg viewBox="0 0 320 230" className="mt-2 h-auto w-full" role="img" aria-label="Side view of the Earth, from a smooth egg to the lumpy sea and the ground">
         <line x1="28" y1={cy} x2="292" y2={cy} stroke="currentColor" className="text-border" strokeDasharray="3 4" />
@@ -78,7 +99,10 @@ export function ShapeLab() {
         <span className="text-highlight">sea-level skin</span>
         <span className="text-fg">ground you stand on</span>
       </div>
-      <label className="mt-4 flex items-center gap-3 text-sm text-muted">
+      <p className="mt-3 font-mono text-xs text-muted tabular-nums">
+        {stretch === 1 ? "true shape, almost a circle" : `${stretch}× the real flattening`}
+      </p>
+      <label className="mt-2 flex items-center gap-3 text-sm text-muted">
         <span className="shrink-0">True</span>
         <input
           type="range"
@@ -86,16 +110,19 @@ export function ShapeLab() {
           max={28}
           step={1}
           value={stretch}
-          onChange={(e) => setStretch(Number(e.target.value))}
+          onChange={(e) => {
+            setPlay(false);
+            setStretch(Number(e.target.value));
+          }}
           className="h-1.5 w-full accent-accent"
           aria-label="Exaggerate the Earth's flattening"
         />
         <span className="shrink-0">Exaggerated</span>
       </label>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        Centre to equator: {A_KM.toLocaleString("en-CA")} km. Centre to pole: {B_KM.toLocaleString("en-CA")} km.
-        The gap is about 21 km. Mount Everest is under 9 km. On a globe the size of a beach ball, the whole
-        squash is thinner than a coat of paint, which is why a ball is a fair first picture, and a bad last one.
+        From the centre out to the equator: {A_KM.toLocaleString("en-CA")} km. From the centre up to the pole:{" "}
+        {B_KM.toLocaleString("en-CA")} km. The pole is about 21 km closer. Everest is under 9 km tall. On a beach-ball
+        globe, the squash is thinner than a coat of paint.
       </p>
     </figure>
   );
